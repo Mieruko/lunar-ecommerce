@@ -1,0 +1,13 @@
+<?php
+namespace App\Filament\Resources\SerialNumbers;
+use App\Filament\Resources\Concerns\AdminResource;
+use App\Filament\Resources\SerialNumbers\Pages\ManageSerialNumbers;
+use App\Models\InventorySerialNumber;
+use BackedEnum; use Filament\Actions\BulkActionGroup; use Filament\Actions\DeleteAction; use Filament\Actions\DeleteBulkAction; use Filament\Actions\EditAction; use Filament\Forms\Components\Select; use Filament\Forms\Components\Textarea; use Filament\Forms\Components\TextInput; use Filament\Schemas\Schema; use Filament\Support\Icons\Heroicon; use Filament\Tables\Columns\TextColumn; use Filament\Tables\Filters\SelectFilter; use Filament\Tables\Table; use Illuminate\Database\Eloquent\Builder;
+class SerialNumberResource extends AdminResource {
+    protected static ?string $model = InventorySerialNumber::class; protected static string $viewPermission = 'inventory.view'; protected static ?string $managePermission = 'inventory.adjust'; protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedQrCode; protected static ?string $navigationLabel = 'Số serial'; protected static string|\UnitEnum|null $navigationGroup = 'Kho hàng'; protected static ?int $navigationSort = 30;
+    private const STATUSES = ['in_stock' => 'Trong kho', 'reserved' => 'Đang giữ', 'sold' => 'Đã bán', 'returned' => 'Đã hoàn', 'void' => 'Không dùng'];
+    public static function form(Schema $schema): Schema { return $schema->components([Select::make('product_variant_id')->relationship('variant','sku')->searchable()->preload()->required(), Select::make('warehouse_id')->relationship('warehouse','name')->searchable()->preload(), TextInput::make('serial_number')->label('Số serial')->required()->unique(ignoreRecord: true), Select::make('status')->label('Trạng thái')->options(self::STATUSES)->default('in_stock')->required(), Textarea::make('notes')->label('Ghi chú')->columnSpanFull()])->columns(2); }
+    public static function table(Table $table): Table { return $table->columns([TextColumn::make('serial_number')->label('Serial')->searchable()->copyable()->weight('bold'), TextColumn::make('product_variant_id')->label('ID biến thể'), TextColumn::make('warehouse_id')->label('ID kho')->placeholder('—'), TextColumn::make('status')->label('Trạng thái')->badge()->formatStateUsing(fn ($s) => self::STATUSES[$s])])->filters([SelectFilter::make('status')->label('Trạng thái')->options(self::STATUSES)])->recordActions([EditAction::make()->label('Sửa'), DeleteAction::make()->label('Xóa')])->toolbarActions([BulkActionGroup::make([DeleteBulkAction::make()])]); }
+    public static function getPages(): array { return ['index' => ManageSerialNumbers::route('/')]; }
+}
