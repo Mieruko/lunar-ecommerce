@@ -84,11 +84,19 @@ class ReadyForShipmentOrders extends TableWidget
                             ->maxLength(255),
                     ])
                     ->authorize(fn (): bool => auth()->user()?->hasPermission('shipping.manage') ?? false)
-                    ->action(fn (Order $record, array $data) => app(ShipmentService::class)->createForOrder(
-                        $record,
-                        $data['carrier'],
-                        $data['tracking_number'],
-                    ))
+                    ->action(function (Order $record, array $data): void {
+                        app(ShipmentService::class)->createForOrder(
+                            $record,
+                            $data['carrier'],
+                            $data['tracking_number'],
+                        );
+
+                        // The queue, shipment table, and navigation badge are
+                        // separate Livewire components, so refresh all three.
+                        $this->resetTable();
+                        $this->dispatch('refresh-page');
+                        $this->dispatch('refresh-sidebar');
+                    })
                     ->successNotificationTitle('Đã tạo vận đơn'),
             ])
             ->emptyStateIcon(Heroicon::OutlinedCheckCircle)

@@ -2,17 +2,20 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Resources\Shipments\Widgets\ReadyForShipmentOrders;
 use App\Models\Inventory;
 use App\Models\InventoryTransaction;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\ProductVariant;
 use App\Models\StockReservation;
+use App\Models\User;
 use App\Services\OrderStatusService;
 use App\Services\ShipmentService;
 use App\Services\StockService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class OrderCancellationStockTest extends TestCase
@@ -114,6 +117,31 @@ class OrderCancellationStockTest extends TestCase
         $this->assertSame('shipped', $shipment->fresh()->status);
         $this->assertSame('shipping', $order->fresh()->status);
         $this->assertNotNull($shipment->fresh()->shipped_at);
+    }
+
+    public function test_creating_a_shipment_refreshes_the_queue_table_and_sidebar_immediately(): void
+    {
+        $this->seed();
+        $this->actingAs(User::query()->where('email', 'admin@lunarjewels.test')->firstOrFail());
+        [$order] = $this->makeOrderWithReservation('active');
+        app(OrderStatusService::class)->transition($order, 'preparing');
+
+        Livewire::test(ReadyForShipmentOrders::class)
+            ->assertCanSeeTableRecords([$order])
+            ->callTableAction('createShipment', $order, [
+                'carrier' => 'GHN',
+                'tracking_number' => 'GHN-LIVE-REFRESH-01',
+            ])
+            ->assertDispatched('refresh-page')
+            ->assertDispatched('refresh-sidebar')
+            ->assertCanNotSeeTableRecords([$order]);
+
+        $this->assertDatabaseHas('shipments', [
+            'order_id' => $order->id,
+            'carrier' => 'GHN',
+            'tracking_number' => 'GHN-LIVE-REFRESH-01',
+            'status' => 'packed',
+        ]);
     }
 
     private function makeOrderWithReservation(string $reservationStatus): array
