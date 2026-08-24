@@ -364,8 +364,42 @@ class SupportConversationService
             return [];
         }
 
-        return collect($metadata)
+        $public = collect($metadata)
             ->only(['intent', 'faq_slug', 'order', 'suggestions', 'action_url'])
             ->all();
+
+        $products = collect($metadata['products'] ?? [])
+            ->filter(fn (mixed $product): bool => is_array($product) && filled($product['name'] ?? null))
+            ->take(3)
+            ->map(function (array $product): array {
+                $stockStatus = in_array($product['stock_status'] ?? null, ['in_stock', 'low_stock', 'out_of_stock'], true)
+                    ? $product['stock_status']
+                    : 'out_of_stock';
+
+                return [
+                    'id' => (int) ($product['id'] ?? 0),
+                    'slug' => str((string) ($product['slug'] ?? ''))->limit(255)->toString(),
+                    'name' => str((string) $product['name'])->stripTags()->limit(255)->toString(),
+                    'brand' => str((string) ($product['brand'] ?? 'LUNAR JEWELS'))->stripTags()->limit(255)->toString(),
+                    'image_url' => is_string($product['image_url'] ?? null) ? $product['image_url'] : null,
+                    'price_amount' => max(0, (int) ($product['price_amount'] ?? 0)),
+                    'currency' => str((string) ($product['currency'] ?? 'VND'))->upper()->limit(3)->toString(),
+                    'stock_status' => $stockStatus,
+                    'stock_label' => match ($stockStatus) {
+                        'in_stock' => 'Sẵn hàng',
+                        'low_stock' => 'Sắp hết',
+                        default => 'Tạm hết',
+                    },
+                    'url' => is_string($product['url'] ?? null) ? $product['url'] : null,
+                ];
+            })
+            ->values()
+            ->all();
+
+        if ($products !== []) {
+            $public['products'] = $products;
+        }
+
+        return $public;
     }
 }

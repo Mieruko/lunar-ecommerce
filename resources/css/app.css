@@ -2230,6 +2230,101 @@ body.menu-open, body.filters-open { overflow: hidden; }
     text-align: center;
 }
 
+.support-chat-products {
+    margin-top: 7px;
+    display: grid;
+    gap: 7px;
+}
+
+.support-chat-product {
+    min-height: 82px;
+    overflow: hidden;
+    border: 1px solid #d9d1c4;
+    background: #fff;
+    color: var(--ink);
+    display: grid;
+    grid-template-columns: 82px minmax(0, 1fr);
+    transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+a.support-chat-product:hover {
+    border-color: #9f8459;
+    box-shadow: 0 8px 20px rgba(16,17,22,.09);
+    transform: translateY(-1px);
+}
+
+.support-chat-product-media {
+    min-height: 82px;
+    overflow: hidden;
+    background: #f1eee8;
+    display: grid;
+    place-items: center;
+    color: #9b835c;
+    font-family: var(--font-display);
+    font-size: 15px;
+}
+
+.support-chat-product-media img {
+    width: 100%;
+    height: 100%;
+    min-height: 82px;
+    object-fit: cover;
+}
+
+.support-chat-product-details {
+    min-width: 0;
+    padding: 9px 10px;
+    display: grid;
+    align-content: center;
+    gap: 4px;
+}
+
+.support-chat-product-details > small {
+    overflow: hidden;
+    color: #90764f;
+    font-size: 7px;
+    font-weight: 800;
+    letter-spacing: .13em;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.support-chat-product-details > strong {
+    display: -webkit-box;
+    overflow: hidden;
+    color: #28292e;
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.25;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.support-chat-product-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.support-chat-product-footer b {
+    color: #2e3035;
+    font-size: 9px;
+    font-weight: 750;
+}
+
+.support-chat-product-footer small {
+    font-size: 7px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.support-chat-product-footer small.is-in_stock { color: #477154; }
+.support-chat-product-footer small.is-low_stock { color: #9b6d27; }
+.support-chat-product-footer small.is-out_of_stock { color: #9e4d46; }
+
 .support-chat-suggestions {
     max-height: 132px;
     overflow-y: auto;

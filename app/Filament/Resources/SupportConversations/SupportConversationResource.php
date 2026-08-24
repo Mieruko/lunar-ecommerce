@@ -5,6 +5,7 @@ namespace App\Filament\Resources\SupportConversations;
 use App\Filament\Resources\Concerns\AdminResource;
 use App\Filament\Resources\SupportConversations\Pages\ManageSupportConversations;
 use App\Filament\Resources\SupportConversations\Pages\ViewSupportConversation;
+use App\Models\Product;
 use App\Models\SupportConversation;
 use App\Models\SupportMessage;
 use App\Notifications\CustomerNotification;
@@ -238,12 +239,14 @@ class SupportConversationResource extends AdminResource
         return $conversation;
     }
 
-    public static function reply(SupportConversation $conversation, string $body): SupportMessage
+    /** @param array<int, int|string> $productIds */
+    public static function reply(SupportConversation $conversation, string $body, array $productIds = []): SupportMessage
     {
         self::ensureAuthorized('support.reply');
         $body = self::validatedBody($body);
+        $products = self::productSnapshots($productIds);
 
-        $message = DB::transaction(function () use ($conversation, $body): SupportMessage {
+        $message = DB::transaction(function () use ($conversation, $body, $products): SupportMessage {
             $locked = SupportConversation::query()->lockForUpdate()->findOrFail($conversation->getKey());
             self::ensureCanWrite($locked);
 
@@ -264,6 +267,7 @@ class SupportConversationResource extends AdminResource
                 'sender_id' => auth()->id(),
                 'body' => $body,
                 'kind' => 'text',
+                'metadata' => $products === [] ? null : ['products' => $products],
             ]);
 
             self::audit('support.reply_sent', $locked, $before, [
@@ -271,6 +275,7 @@ class SupportConversationResource extends AdminResource
                 'assigned_to' => $locked->assigned_to,
                 'message_id' => $message->id,
                 'kind' => $message->kind,
+                'product_count' => count($products),
             ]);
 
             return $message;
@@ -280,6 +285,37 @@ class SupportConversationResource extends AdminResource
         self::notifyCustomer($conversation);
 
         return $message;
+    }
+
+    /** @return array<int|string, string> */
+    public static function searchProducts(string $search): array
+    {
+        return Product::query()
+            ->where('status', 'active')
+            ->where(function (Builder $query) use ($search): void {
+                $query
+                    ->where('name', 'like', "%{$search}%")
+                    ->orWhere('slug', 'like', "%{$search}%")
+                    ->orWhereHas('variants', fn (Builder $query): Builder => $query
+                        ->where('sku', 'like', "%{$search}%"));
+            })
+            ->orderBy('name')
+            ->limit(30)
+            ->pluck('name', 'id')
+            ->all();
+    }
+
+    /**
+     * @param  array<int, int|string>  $productIds
+     * @return array<int|string, string>
+     */
+    public static function productLabels(array $productIds): array
+    {
+        return Product::query()
+            ->where('status', 'active')
+            ->whereIn('id', $productIds)
+            ->pluck('name', 'id')
+            ->all();
     }
 
     public static function addInternalNote(SupportConversation $conversation, string $body): SupportMessage
@@ -485,6 +521,73 @@ class SupportConversationResource extends AdminResource
         }
 
         return $body;
+    }
+
+    /**
+     * @param  array<int, int|string>  $productIds
+     * @return array<int, array<string, int|string|null>>
+     */
+    private static function productSnapshots(array $productIds): array
+    {
+        $ids = collect($productIds)
+            ->filter(fn (mixed $id): bool => is_numeric($id) && (int) $id > 0)
+            ->map(fn (mixed $id): int => (int) $id)
+            ->unique()
+            ->values();
+
+        if ($ids->count() > 3) {
+            throw ValidationException::withMessages([
+                'product_ids' => 'Mỗi phản hồi chỉ được đính kèm tối đa 3 sản phẩm.',
+            ]);
+        }
+
+        if ($ids->isEmpty()) {
+            return [];
+        }
+
+        $products = Product::query()
+            ->where('status', 'active')
+            ->whereIn('id', $ids)
+            ->with(['brand', 'primaryImage', 'images', 'variants.inventory'])
+            ->get()
+            ->keyBy('id');
+
+        if ($products->count() !== $ids->count()) {
+            throw ValidationException::withMessages([
+                'product_ids' => 'Một sản phẩm đã ngừng bán hoặc không còn tồn tại.',
+            ]);
+        }
+
+        return $ids
+            ->map(function (int $id) use ($products): array {
+                /** @var Product $product */
+                $product = $products->get($id);
+                $variant = $product->variants->sortBy('price_amount')->first();
+                $stock = (int) $product->variants->sum(fn ($variant): int => max(
+                    0,
+                    (int) $variant->inventory->sum('quantity_on_hand')
+                        - (int) $variant->inventory->sum('quantity_reserved'),
+                ));
+                $stockStatus = $stock <= 0 ? 'out_of_stock' : ($stock <= 2 ? 'low_stock' : 'in_stock');
+
+                return [
+                    'id' => $product->id,
+                    'slug' => $product->slug,
+                    'name' => $product->name,
+                    'brand' => $product->brand?->name ?: 'LUNAR JEWELS',
+                    'image_url' => $product->primaryImage?->path ?? $product->images->first()?->path,
+                    'price_amount' => (int) ($variant?->price_amount ?? $product->base_price_amount),
+                    'currency' => $product->currency ?: 'VND',
+                    'stock_status' => $stockStatus,
+                    'stock_label' => match ($stockStatus) {
+                        'in_stock' => 'Sẵn hàng',
+                        'low_stock' => 'Sắp hết',
+                        default => 'Tạm hết',
+                    },
+                    'url' => route('products.show', ['product' => $product->slug], false),
+                ];
+            })
+            ->all();
     }
 
     private static function audit(

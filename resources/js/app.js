@@ -468,6 +468,99 @@ document.querySelectorAll('[data-support-chat]').forEach((root) => {
         }).format(date);
     };
 
+    const formatProductPrice = (product) => {
+        const amount = Number(product?.price_amount);
+        if (!Number.isFinite(amount) || amount < 0) return '';
+
+        const currency = String(product?.currency || 'VND').toUpperCase();
+        if (currency === 'VND') {
+            return `${new Intl.NumberFormat('vi-VN').format(amount)} ₫`;
+        }
+
+        try {
+            return new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency,
+            }).format(amount);
+        } catch (_) {
+            return `${new Intl.NumberFormat('vi-VN').format(amount)} ${currency}`;
+        }
+    };
+
+    const createProductCards = (rawProducts) => {
+        if (!Array.isArray(rawProducts) || !rawProducts.length) return null;
+
+        const list = document.createElement('div');
+        list.className = 'support-chat-products';
+        list.setAttribute('aria-label', 'Sản phẩm được tư vấn');
+
+        rawProducts.slice(0, 3).forEach((product) => {
+            if (!isRecord(product)) return;
+
+            const name = String(product.name || '').trim();
+            if (!name) return;
+
+            const productUrl = safeLink(product.url);
+            const card = document.createElement(productUrl ? 'a' : 'article');
+            card.className = 'support-chat-product';
+
+            if (productUrl) {
+                card.href = productUrl.href;
+                card.setAttribute('aria-label', `Xem sản phẩm ${name}`);
+                if (productUrl.origin !== window.location.origin) {
+                    card.target = '_blank';
+                    card.rel = 'noopener noreferrer';
+                }
+            }
+
+            const media = document.createElement('span');
+            media.className = 'support-chat-product-media';
+            const imageUrl = safeLink(product.image_url);
+
+            if (imageUrl) {
+                const image = document.createElement('img');
+                image.src = imageUrl.href;
+                image.alt = name;
+                image.loading = 'lazy';
+                media.appendChild(image);
+            } else {
+                const placeholder = document.createElement('span');
+                placeholder.textContent = 'LJ';
+                placeholder.setAttribute('aria-hidden', 'true');
+                media.appendChild(placeholder);
+            }
+
+            const details = document.createElement('span');
+            details.className = 'support-chat-product-details';
+
+            const brand = document.createElement('small');
+            brand.textContent = String(product.brand || 'LUNAR JEWELS').trim();
+
+            const title = document.createElement('strong');
+            title.textContent = name;
+
+            const footer = document.createElement('span');
+            footer.className = 'support-chat-product-footer';
+
+            const price = document.createElement('b');
+            price.textContent = formatProductPrice(product);
+
+            const stock = document.createElement('small');
+            const stockStatus = ['in_stock', 'low_stock', 'out_of_stock'].includes(product.stock_status)
+                ? product.stock_status
+                : 'out_of_stock';
+            stock.className = `is-${stockStatus}`;
+            stock.textContent = String(product.stock_label || (stockStatus === 'in_stock' ? 'Sẵn hàng' : 'Tạm hết'));
+
+            footer.append(price, stock);
+            details.append(brand, title, footer);
+            card.append(media, details);
+            list.appendChild(card);
+        });
+
+        return list.childElementCount ? list : null;
+    };
+
     const messageKey = (message, sender, body, index) => {
         if (message.id !== undefined && message.id !== null) {
             return `id:${message.id}`;
@@ -532,6 +625,8 @@ document.querySelectorAll('[data-support-chat]').forEach((root) => {
         bubble.textContent = body;
 
         content.append(meta, bubble);
+        const productCards = createProductCards(message.metadata?.products);
+        if (productCards) content.appendChild(productCards);
         article.append(avatar, content);
         return { element: article, sender };
     };

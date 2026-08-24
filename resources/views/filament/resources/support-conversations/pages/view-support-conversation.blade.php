@@ -77,6 +77,80 @@
             white-space: pre-wrap;
         }
 
+        .lj-support-products {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+            gap: .65rem;
+            margin-top: .75rem;
+        }
+
+        .lj-support-product {
+            overflow: hidden;
+            border: 1px solid #d7dce3;
+            border-radius: .75rem;
+            background: #fff;
+            color: #111827;
+            display: grid;
+            grid-template-columns: 5rem minmax(0, 1fr);
+            text-decoration: none;
+        }
+
+        .lj-support-product:hover {
+            border-color: #d5a647;
+            box-shadow: 0 6px 18px rgb(15 23 42 / 8%);
+        }
+
+        .lj-support-product__media {
+            min-height: 5rem;
+            background: #f3f4f6;
+            display: grid;
+            place-items: center;
+            color: #9a7a3d;
+            font-family: serif;
+            font-weight: 700;
+        }
+
+        .lj-support-product__media img {
+            width: 100%;
+            height: 100%;
+            min-height: 5rem;
+            object-fit: cover;
+        }
+
+        .lj-support-product__details {
+            min-width: 0;
+            padding: .65rem .75rem;
+            display: grid;
+            align-content: center;
+            gap: .2rem;
+        }
+
+        .lj-support-product__details small {
+            color: #92723a;
+            font-size: .65rem;
+            font-weight: 700;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+        }
+
+        .lj-support-product__details strong {
+            overflow-wrap: anywhere;
+            font-size: .8rem;
+            line-height: 1.35;
+        }
+
+        .lj-support-product__footer {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: .35rem;
+            margin-top: .2rem;
+            font-size: .72rem;
+        }
+
+        .lj-support-product__footer span { color: #64748b; }
+
         .lj-support-context {
             display: grid;
             gap: 1rem;
@@ -143,6 +217,14 @@
             color: #f3f4f6;
         }
 
+        .dark .lj-support-product {
+            border-color: #374151;
+            background: #111827;
+            color: #f3f4f6;
+        }
+
+        .dark .lj-support-product__media { background: #1f2937; }
+
         @media (max-width: 1024px) {
             .lj-support-layout {
                 grid-template-columns: 1fr;
@@ -204,6 +286,9 @@
                                 \App\Models\SupportMessage::SENDER_SYSTEM => 'Hệ thống',
                                 default => $conversation->user?->name ?? 'Khách hàng',
                             };
+                        $attachedProducts = is_array($message->metadata['products'] ?? null)
+                            ? array_slice($message->metadata['products'], 0, 3)
+                            : [];
                     @endphp
 
                     <article
@@ -217,6 +302,39 @@
                             </time>
                         </div>
                         <div class="lj-support-message__body">{{ $message->body }}</div>
+                        @if ($attachedProducts !== [])
+                            <div class="lj-support-products" aria-label="Sản phẩm đã tư vấn">
+                                @foreach ($attachedProducts as $product)
+                                    @php
+                                        $rawUrl = is_string($product['url'] ?? null) ? $product['url'] : '';
+                                        $productUrl = str_starts_with($rawUrl, '/') || str_starts_with($rawUrl, 'https://') || str_starts_with($rawUrl, 'http://')
+                                            ? $rawUrl
+                                            : route('shop');
+                                        $rawImage = is_string($product['image_url'] ?? null) ? $product['image_url'] : '';
+                                        $imageUrl = str_starts_with($rawImage, '/') || str_starts_with($rawImage, 'https://') || str_starts_with($rawImage, 'http://')
+                                            ? $rawImage
+                                            : null;
+                                    @endphp
+                                    <a class="lj-support-product" href="{{ $productUrl }}" target="_blank" rel="noopener noreferrer">
+                                        <span class="lj-support-product__media">
+                                            @if ($imageUrl)
+                                                <img src="{{ $imageUrl }}" alt="{{ $product['name'] ?? 'Sản phẩm LUNAR' }}" loading="lazy">
+                                            @else
+                                                <span aria-hidden="true">LJ</span>
+                                            @endif
+                                        </span>
+                                        <span class="lj-support-product__details">
+                                            <small>{{ $product['brand'] ?? 'LUNAR JEWELS' }}</small>
+                                            <strong>{{ $product['name'] ?? 'Sản phẩm LUNAR' }}</strong>
+                                            <span class="lj-support-product__footer">
+                                                <b>{{ number_format(max(0, (int) ($product['price_amount'] ?? 0)), 0, ',', '.') }} ₫</b>
+                                                <span>{{ $product['stock_label'] ?? 'Xem sản phẩm' }}</span>
+                                            </span>
+                                        </span>
+                                    </a>
+                                @endforeach
+                            </div>
+                        @endif
                     </article>
                 @empty
                     <div class="lj-support-empty">

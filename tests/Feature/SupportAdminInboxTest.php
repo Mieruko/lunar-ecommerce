@@ -7,7 +7,10 @@ use App\Filament\Resources\SupportConversations\SupportConversationResource;
 use App\Filament\Resources\SupportFaqs\SupportFaqResource;
 use App\Filament\Resources\SupportSavedReplies\SupportSavedReplyResource;
 use App\Models\AdminActivityLog;
+use App\Models\Category;
 use App\Models\Permission;
+use App\Models\Product;
+use App\Models\ProductImage;
 use App\Models\Role;
 use App\Models\SupportConversation;
 use App\Models\SupportMessage;
@@ -79,6 +82,7 @@ class SupportAdminInboxTest extends TestCase
         ]);
         $replyBody = 'LUNAR đã tiếp nhận và đang kiểm tra yêu cầu của bạn.';
         $internalBody = 'Đã đối chiếu nội bộ, chờ bộ phận kho xác nhận.';
+        $product = $this->product();
 
         $this->actingAs($staff);
 
@@ -97,7 +101,7 @@ class SupportAdminInboxTest extends TestCase
 
         $component
             ->assertActionVisible('reply')
-            ->callAction('reply', ['body' => $replyBody])
+            ->callAction('reply', ['body' => $replyBody, 'product_ids' => [$product->id]])
             ->callAction('internalNote', ['body' => $internalBody])
             ->callAction('setPriority', ['priority' => 'urgent'])
             ->callAction('resolve')
@@ -111,6 +115,15 @@ class SupportAdminInboxTest extends TestCase
             'kind' => 'text',
             'body' => $replyBody,
         ]);
+        $reply = SupportMessage::query()
+            ->where('conversation_id', $conversation->id)
+            ->where('kind', 'text')
+            ->where('body', $replyBody)
+            ->firstOrFail();
+        $this->assertSame($product->id, $reply->metadata['products'][0]['id']);
+        $this->assertSame('Celeste Diamond Halo Ring', $reply->metadata['products'][0]['name']);
+        $this->assertSame('/products/celeste-diamond-halo-ring', $reply->metadata['products'][0]['url']);
+        $this->assertSame(17_000_000, $reply->metadata['products'][0]['price_amount']);
         $this->assertDatabaseHas('support_messages', [
             'conversation_id' => $conversation->id,
             'sender_type' => SupportMessage::SENDER_STAFF,
@@ -129,6 +142,13 @@ class SupportAdminInboxTest extends TestCase
         $notification = $customer->notifications()->latest()->firstOrFail();
         $this->assertSame('support', $notification->data['category']);
         $this->assertSame(route('home', ['support' => 'chat']), $notification->data['action_url']);
+
+        $this->actingAs($customer)
+            ->getJson(route('support.chat.current'))
+            ->assertOk()
+            ->assertJsonPath('messages.1.metadata.products.0.name', 'Celeste Diamond Halo Ring')
+            ->assertJsonPath('messages.1.metadata.products.0.price_amount', 17_000_000)
+            ->assertJsonPath('messages.1.metadata.products.0.url', '/products/celeste-diamond-halo-ring');
 
         $auditPayload = AdminActivityLog::query()
             ->where('subject_type', $conversation->getMorphClass())
@@ -184,5 +204,31 @@ class SupportAdminInboxTest extends TestCase
         $user->roles()->attach($role);
 
         return $user;
+    }
+
+    private function product(): Product
+    {
+        $category = Category::create([
+            'name' => 'Nhẫn tư vấn',
+            'slug' => 'support-ring-test',
+            'is_active' => true,
+        ]);
+        $product = Product::create([
+            'category_id' => $category->id,
+            'name' => 'Celeste Diamond Halo Ring',
+            'slug' => 'celeste-diamond-halo-ring',
+            'product_type' => 'jewelry',
+            'status' => 'active',
+            'base_price_amount' => 17_000_000,
+            'currency' => 'VND',
+        ]);
+        ProductImage::create([
+            'product_id' => $product->id,
+            'path' => 'https://images.example.test/celeste-ring.jpg',
+            'is_primary' => true,
+            'sort_order' => 0,
+        ]);
+
+        return $product;
     }
 }

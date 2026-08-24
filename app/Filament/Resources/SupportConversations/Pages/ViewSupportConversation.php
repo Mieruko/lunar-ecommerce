@@ -119,6 +119,14 @@ class ViewSupportConversation extends ViewRecord
                                 $set('body', $body);
                             }
                         }),
+                    Select::make('product_ids')
+                        ->label('Sản phẩm tư vấn')
+                        ->helperText('Tìm theo tên, slug hoặc SKU. Khách sẽ thấy ảnh, giá và nút mở sản phẩm trong chat.')
+                        ->multiple()
+                        ->searchable()
+                        ->getSearchResultsUsing(fn (string $search): array => SupportConversationResource::searchProducts($search))
+                        ->getOptionLabelsUsing(fn (array $values): array => SupportConversationResource::productLabels($values))
+                        ->maxItems(3),
                     Textarea::make('body')
                         ->label('Nội dung phản hồi')
                         ->helperText('Khách hàng sẽ nhận thông báo, nhưng nội dung không được ghi vào audit log.')
@@ -128,7 +136,11 @@ class ViewSupportConversation extends ViewRecord
                 ])
                 ->modalSubmitActionLabel('Gửi phản hồi')
                 ->action(function (array $data): void {
-                    SupportConversationResource::reply($this->conversation(), $data['body']);
+                    SupportConversationResource::reply(
+                        $this->conversation(),
+                        $data['body'],
+                        $data['product_ids'] ?? [],
+                    );
                     $this->refreshConversation();
                     $this->success('Đã gửi phản hồi');
                 }),
