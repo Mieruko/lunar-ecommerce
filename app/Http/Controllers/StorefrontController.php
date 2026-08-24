@@ -141,8 +141,15 @@ class StorefrontController extends Controller
 
     public function tracking(Request $request)
     {
-        $data = $request->validate(['order_number' => ['required', 'string'], 'phone' => ['required', 'string']]);
-        $order = Order::with(['items', 'payments', 'shipments'])->where('order_number', $data['order_number'])->where('customer_phone', $data['phone'])->first();
+        $data = $request->validate([
+            'order_number' => ['required', 'string', 'max:50'],
+            'phone' => ['required', 'string', 'max:30'],
+        ]);
+
+        $order = Order::with('shipments')
+            ->where('order_number', strtoupper(trim($data['order_number'])))
+            ->where('customer_phone', trim($data['phone']))
+            ->first();
 
         return view('store.track', compact('order'));
     }

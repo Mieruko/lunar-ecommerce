@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0b0d12">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? 'LUNAR JEWELS' }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -131,5 +132,7 @@
         <span>Authenticity · Craft · Service</span>
     </div>
 </footer>
+
+@include('store.partials.support-chat')
 </body>
 </html>

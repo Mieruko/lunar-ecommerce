@@ -86,6 +86,11 @@ class Order extends Model
         return $this->hasMany(ReturnRequest::class);
     }
 
+    public function supportConversations(): HasMany
+    {
+        return $this->hasMany(SupportConversation::class);
+    }
+
     public function scopeReadyForShipment(Builder $query): Builder
     {
         return $query

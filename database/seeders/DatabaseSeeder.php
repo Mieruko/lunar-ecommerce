@@ -11,6 +11,8 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductVariant;
 use App\Models\Role;
+use App\Models\SupportFaq;
+use App\Models\SupportSavedReply;
 use App\Models\User;
 use App\Models\Warehouse;
 use App\Models\WatchDetail;
@@ -37,6 +39,7 @@ class DatabaseSeeder extends Seeder
             'shipping.view', 'shipping.manage',
             'promotions.manage', 'reviews.moderate', 'warranties.manage', 'returns.manage',
             'content.manage', 'reports.view', 'reports.export', 'settings.manage', 'staff.manage',
+            'support.view', 'support.reply', 'support.assign', 'support.resolve', 'support.manage_knowledge',
         ];
 
         $permissionModels = collect($permissions)->mapWithKeys(fn (string $slug) => [
@@ -48,7 +51,7 @@ class DatabaseSeeder extends Seeder
             'product-manager' => ['admin.access', 'dashboard.view', 'catalog.view', 'catalog.create', 'catalog.update', 'catalog.delete'],
             'inventory-clerk' => ['admin.access', 'dashboard.view', 'inventory.view', 'inventory.adjust', 'inventory.receive', 'catalog.view'],
             'order-manager' => ['admin.access', 'dashboard.view', 'orders.view', 'orders.update_status', 'orders.add_note', 'orders.print_invoice', 'shipping.view', 'shipping.manage'],
-            'customer-service' => ['admin.access', 'dashboard.view', 'customers.view', 'customers.update', 'customers.block', 'reviews.moderate', 'warranties.manage', 'returns.manage', 'orders.view', 'orders.add_note'],
+            'customer-service' => ['admin.access', 'dashboard.view', 'customers.view', 'customers.update', 'customers.block', 'reviews.moderate', 'warranties.manage', 'returns.manage', 'orders.view', 'orders.add_note', 'support.view', 'support.reply', 'support.assign', 'support.resolve', 'support.manage_knowledge'],
             'marketing' => ['admin.access', 'dashboard.view', 'catalog.view', 'promotions.manage', 'content.manage', 'reviews.moderate'],
             'accountant' => ['admin.access', 'dashboard.view', 'payments.view', 'payments.refund', 'reports.view', 'reports.export', 'orders.view'],
         ];
@@ -64,6 +67,68 @@ class DatabaseSeeder extends Seeder
             'name' => 'LUNAR JEWELS Admin', 'phone' => '0900000000', 'password' => 'password', 'status' => 'active', 'email_verified_at' => now(),
         ]);
         $admin->roles()->syncWithoutDetaching([Role::where('slug', 'super-admin')->value('id')]);
+
+        $supportFaqs = [
+            [
+                'slug' => 'shipping-fee',
+                'question' => 'Phí vận chuyển được tính thế nào?',
+                'answer' => 'Phí vận chuyển được tính theo khu vực giao hàng và hiển thị trước khi bạn đặt đơn. Khi đơn đạt ngưỡng miễn phí của khu vực, hệ thống sẽ tự động miễn phí vận chuyển.',
+                'keywords' => ['phí vận chuyển', 'phí ship', 'giao hàng', 'miễn phí vận chuyển'],
+                'category' => 'shipping',
+                'suggestions' => ['Tôi muốn theo dõi đơn hàng', 'Chính sách đổi trả'],
+                'sort_order' => 10,
+            ],
+            [
+                'slug' => 'track-order',
+                'question' => 'Tôi muốn theo dõi đơn hàng',
+                'answer' => 'Nếu đã đăng nhập, bạn có thể hỏi mã đơn hoặc đơn gần nhất ngay tại đây. Khách chưa đăng nhập vui lòng dùng trang Theo dõi đơn hàng để xác minh thông tin mua hàng.',
+                'keywords' => ['theo dõi đơn', 'trạng thái đơn', 'đơn của tôi'],
+                'category' => 'order',
+                'suggestions' => ['Chính sách đổi trả', 'Tôi cần bảo hành sản phẩm'],
+                'sort_order' => 20,
+            ],
+            [
+                'slug' => 'returns',
+                'question' => 'Chính sách đổi trả',
+                'answer' => 'Bạn có thể gửi yêu cầu tại mục Đổi trả. Hệ thống sẽ yêu cầu thông tin xác minh đơn hàng và đội ngũ chăm sóc khách hàng sẽ phản hồi sau khi kiểm tra tình trạng sản phẩm.',
+                'keywords' => ['đổi trả', 'đổi hàng', 'trả hàng', 'hoàn hàng'],
+                'category' => 'returns',
+                'suggestions' => ['Tôi cần bảo hành sản phẩm', 'Gặp nhân viên'],
+                'sort_order' => 30,
+            ],
+            [
+                'slug' => 'warranty',
+                'question' => 'Tôi cần bảo hành sản phẩm',
+                'answer' => 'Bạn có thể gửi yêu cầu tại mục Bảo hành bằng mã phiếu bảo hành và thông tin mua hàng. Nhân viên sẽ kiểm tra hiệu lực rồi cập nhật tiến độ xử lý.',
+                'keywords' => ['bảo hành', 'sửa chữa', 'phiếu bảo hành'],
+                'category' => 'warranty',
+                'suggestions' => ['Chính sách đổi trả', 'Gặp nhân viên'],
+                'sort_order' => 40,
+            ],
+            [
+                'slug' => 'payments',
+                'question' => 'LUNAR hỗ trợ phương thức thanh toán nào?',
+                'answer' => 'Các phương thức đang khả dụng sẽ được hiển thị ở bước thanh toán. Trạng thái thanh toán của đơn đã đăng nhập có thể được tra cứu an toàn ngay trong cuộc trò chuyện.',
+                'keywords' => ['thanh toán', 'vnpay', 'paypal', 'chuyển khoản', 'cod'],
+                'category' => 'payment',
+                'suggestions' => ['Tôi muốn theo dõi đơn hàng', 'Gặp nhân viên'],
+                'sort_order' => 50,
+            ],
+        ];
+
+        foreach ($supportFaqs as $faq) {
+            SupportFaq::updateOrCreate(['slug' => $faq['slug']], [...$faq, 'is_active' => true]);
+        }
+
+        $savedReplies = [
+            ['shortcut' => 'da-tiep-nhan', 'title' => 'Đã tiếp nhận', 'body' => 'LUNAR đã tiếp nhận yêu cầu của bạn và đang kiểm tra thông tin. Mình sẽ phản hồi ngay khi có cập nhật.', 'category' => 'general', 'sort_order' => 10],
+            ['shortcut' => 'can-them-thong-tin', 'title' => 'Cần thêm thông tin', 'body' => 'Bạn vui lòng cung cấp thêm mã đơn hàng và mô tả chi tiết tình huống để LUNAR kiểm tra chính xác hơn.', 'category' => 'general', 'sort_order' => 20],
+            ['shortcut' => 'da-giai-quyet', 'title' => 'Đã giải quyết', 'body' => 'Yêu cầu đã được xử lý. Nếu bạn cần hỗ trợ thêm, hãy nhắn lại trong cuộc trò chuyện này.', 'category' => 'general', 'sort_order' => 30],
+        ];
+
+        foreach ($savedReplies as $reply) {
+            SupportSavedReply::updateOrCreate(['shortcut' => $reply['shortcut']], [...$reply, 'is_active' => true]);
+        }
 
         $watches = Category::updateOrCreate(['slug' => 'watches'], ['name' => 'Đồng hồ', 'description' => 'Đồng hồ chính hãng.', 'is_active' => true, 'sort_order' => 1]);
         $automatic = Category::updateOrCreate(['slug' => 'automatic-watches'], ['name' => 'Đồng hồ cơ', 'parent_id' => $watches->id, 'is_active' => true, 'sort_order' => 1]);

@@ -22,8 +22,8 @@
             <div class="tracking-panel-head"><span>01</span><div><span class="eyebrow">Find your order</span><h2>Theo dõi đơn hàng</h2></div></div>
             <form class="tracking-form" method="POST" action="{{ route('tracking.search') }}">
                 @csrf
-                <label class="field"><span>Mã đơn hàng</span><input name="order_number" value="{{ old('order_number') }}" placeholder="VD: LJ-260814-ABC123" required></label>
-                <label class="field"><span>Số điện thoại</span><input name="phone" value="{{ old('phone') }}" autocomplete="tel" required></label>
+                <label class="field"><span>Mã đơn hàng</span><input name="order_number" value="{{ old('order_number') }}" placeholder="VD: LJ-260814-ABC123" maxlength="50" autocapitalize="characters" required></label>
+                <label class="field"><span>Số điện thoại</span><input name="phone" value="{{ old('phone') }}" autocomplete="tel" inputmode="tel" maxlength="30" required></label>
                 <button class="button" type="submit">Tra cứu đơn hàng <span>→</span></button>
             </form>
 

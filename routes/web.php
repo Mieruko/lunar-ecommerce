@@ -10,6 +10,7 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\StorefrontController;
+use App\Http\Controllers\SupportChatController;
 
 Route::get('/', [StorefrontController::class, 'home'])->name('home');
 Route::get('/shop', [StorefrontController::class, 'shop'])->name('shop');
@@ -38,11 +39,17 @@ Route::get('/payments/paypal/{order}/redirect', [PaymentController::class, 'payp
 Route::get('/payments/paypal/return', [PaymentController::class, 'paypalReturn'])->name('payments.paypal.return');
 Route::post('/webhooks/paypal', [PaymentController::class, 'paypalWebhook'])->name('payments.paypal.webhook');
 Route::get('/track-order', [StorefrontController::class, 'trackingForm'])->name('tracking.form');
-Route::post('/track-order', [StorefrontController::class, 'tracking'])->name('tracking.search');
+Route::post('/track-order', [StorefrontController::class, 'tracking'])->middleware('throttle:6,1')->name('tracking.search');
 Route::get('/support/return', [AfterSalesController::class, 'returnForm'])->name('support.return.form');
 Route::post('/support/return', [AfterSalesController::class, 'submitReturn'])->middleware('throttle:6,1')->name('support.return.submit');
 Route::get('/support/warranty', [AfterSalesController::class, 'warrantyForm'])->name('support.warranty.form');
 Route::post('/support/warranty', [AfterSalesController::class, 'submitWarranty'])->middleware('throttle:6,1')->name('support.warranty.submit');
+Route::prefix('support/chat')->name('support.chat.')->group(function () {
+    Route::get('/', [SupportChatController::class, 'current'])->middleware('throttle:120,1')->name('current');
+    Route::post('/messages', [SupportChatController::class, 'message'])->middleware('throttle:20,1')->name('messages');
+    Route::post('/handoff', [SupportChatController::class, 'handoff'])->middleware('throttle:10,1')->name('handoff');
+    Route::post('/read', [SupportChatController::class, 'read'])->middleware('throttle:60,1')->name('read');
+});
 Route::middleware('guest')->group(function () { Route::get('/login', [AuthController::class, 'showLogin'])->name('login'); Route::post('/login', [AuthController::class, 'login'])->name('login.store'); Route::get('/register', [AuthController::class, 'showRegister'])->name('register'); Route::post('/register', [AuthController::class, 'register'])->name('register.store'); });
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 Route::get('/admin/reports/sales.csv', [AdminReportController::class, 'export'])->middleware('auth')->name('admin.reports.export');

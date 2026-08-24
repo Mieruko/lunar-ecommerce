@@ -39,6 +39,9 @@ class User extends Authenticatable implements FilamentUser
     public function carts(): HasMany { return $this->hasMany(Cart::class); }
     public function wishlists(): HasMany { return $this->hasMany(Wishlist::class); }
     public function reviews(): HasMany { return $this->hasMany(Review::class); }
+    public function supportConversations(): HasMany { return $this->hasMany(SupportConversation::class); }
+    public function assignedSupportConversations(): HasMany { return $this->hasMany(SupportConversation::class, 'assigned_to'); }
+    public function supportMessages(): HasMany { return $this->hasMany(SupportMessage::class, 'sender_id'); }
     public function customerProfile(): \Illuminate\Database\Eloquent\Relations\HasOne { return $this->hasOne(CustomerProfile::class); }
 
     public function roles(): BelongsToMany { return $this->belongsToMany(Role::class, 'user_roles'); }
