@@ -38,6 +38,7 @@ class User extends Authenticatable implements FilamentUser
     public function orders(): HasMany { return $this->hasMany(Order::class); }
     public function carts(): HasMany { return $this->hasMany(Cart::class); }
     public function wishlists(): HasMany { return $this->hasMany(Wishlist::class); }
+    public function reviews(): HasMany { return $this->hasMany(Review::class); }
     public function customerProfile(): \Illuminate\Database\Eloquent\Relations\HasOne { return $this->hasOne(CustomerProfile::class); }
 
     public function roles(): BelongsToMany { return $this->belongsToMany(Role::class, 'user_roles'); }

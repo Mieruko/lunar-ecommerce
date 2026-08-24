@@ -8,6 +8,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\StorefrontController;
 
 Route::get('/', [StorefrontController::class, 'home'])->name('home');
@@ -15,6 +16,7 @@ Route::get('/shop', [StorefrontController::class, 'shop'])->name('shop');
 Route::get('/watches', fn (\Illuminate\Http\Request $request, StorefrontController $store) => $store->shop($request, 'watch'))->name('watches');
 Route::get('/jewelry', fn (\Illuminate\Http\Request $request, StorefrontController $store) => $store->shop($request, 'jewelry'))->name('jewelry');
 Route::get('/products/{product:slug}', [StorefrontController::class, 'show'])->name('products.show');
+Route::post('/products/{product:slug}/reviews', [ReviewController::class, 'store'])->middleware(['auth', 'throttle:6,1'])->name('products.reviews.store');
 Route::post('/products/{product:slug}/cart', [CartController::class, 'store'])->name('cart.store');
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::patch('/cart/items/{cartItem}', [CartController::class, 'update'])->name('cart.update');

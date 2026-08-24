@@ -61,4 +61,9 @@ class Product extends Model
         return $this->belongsToMany(Gemstone::class, 'product_gemstones')
             ->withPivot(['product_variant_id', 'quantity', 'total_carat', 'cut_grade', 'color_grade', 'clarity_grade', 'setting_type']);
     }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
 }

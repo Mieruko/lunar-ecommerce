@@ -31,10 +31,38 @@ document.addEventListener('keydown', (event) => {
   closeMobileMenu();
   closeFilters();
 });
-document.querySelectorAll('[data-thumb]').forEach((thumb) => thumb.addEventListener('click', () => {
-  const image = document.querySelector('[data-main-image]'); if (!image) return;
-  image.src = thumb.dataset.thumb; document.querySelectorAll('[data-thumb]').forEach((item) => item.classList.remove('active')); thumb.classList.add('active');
-}));
+document.querySelectorAll('[data-product-gallery]').forEach((gallery) => {
+  const image = gallery.querySelector('[data-main-image]');
+  const thumbs = [...gallery.querySelectorAll('[data-thumb]')];
+  const currentLabel = gallery.querySelector('[data-image-current]');
+  let currentIndex = Math.max(0, thumbs.findIndex((thumb) => thumb.classList.contains('active')));
+
+  if (!image || !thumbs.length) return;
+
+  const selectImage = (requestedIndex) => {
+    currentIndex = (requestedIndex + thumbs.length) % thumbs.length;
+    const selected = thumbs[currentIndex];
+    const nextImage = new Image();
+    nextImage.src = selected.dataset.thumb;
+
+    image.classList.add('is-switching');
+    image.src = selected.dataset.thumb;
+    image.alt = selected.dataset.thumbAlt || image.alt;
+    window.requestAnimationFrame(() => image.classList.remove('is-switching'));
+
+    thumbs.forEach((thumb, index) => {
+      const active = index === currentIndex;
+      thumb.classList.toggle('active', active);
+      thumb.setAttribute('aria-pressed', String(active));
+    });
+
+    if (currentLabel) currentLabel.textContent = String(currentIndex + 1).padStart(2, '0');
+  };
+
+  thumbs.forEach((thumb, index) => thumb.addEventListener('click', () => selectImage(index)));
+  gallery.querySelector('[data-gallery-prev]')?.addEventListener('click', () => selectImage(currentIndex - 1));
+  gallery.querySelector('[data-gallery-next]')?.addEventListener('click', () => selectImage(currentIndex + 1));
+});
 document.querySelectorAll('[data-quantity]').forEach((container) => { const input = container.querySelector('input'); container.querySelector('[data-minus]')?.addEventListener('click', () => input.value = Math.max(1, Number(input.value) - 1)); container.querySelector('[data-plus]')?.addEventListener('click', () => input.value = Math.min(10, Number(input.value) + 1)); });
 document.querySelectorAll('[data-copy-code]').forEach((button) => button.addEventListener('click', async () => {
   try {

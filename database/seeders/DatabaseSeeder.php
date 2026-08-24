@@ -99,6 +99,9 @@ class DatabaseSeeder extends Seeder
 
         \DB::table('store_settings')->updateOrInsert(['key' => 'paypal_vnd_usd_rate'], ['value' => '25000', 'updated_at' => now(), 'created_at' => now()]);
 
-        $this->call(CatalogExpansionSeeder::class);
+        $this->call([
+            CatalogExpansionSeeder::class,
+            ProductGallerySeeder::class,
+        ]);
     }
 }

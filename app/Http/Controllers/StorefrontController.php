@@ -7,7 +7,9 @@ use App\Models\Category;
 use App\Models\Gemstone;
 use App\Models\Material;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\Review;
 use App\Models\WishlistItem;
 use Illuminate\Http\Request;
 
@@ -90,7 +92,46 @@ class StorefrontController extends Controller
             ->whereHas('wishlist', fn ($query) => $query->where('user_id', auth()->id()))
             ->exists();
 
-        return view('store.product', compact('product', 'related', 'images', 'firstImage', 'isWishlisted'));
+        $reviews = Review::query()
+            ->with('user:id,name')
+            ->where('product_id', $product->id)
+            ->where('status', 'approved')
+            ->latest()
+            ->get();
+        $reviewAverage = $reviews->isEmpty() ? 0 : round((float) $reviews->avg('rating'), 1);
+        $ratingCounts = collect(range(1, 5))->mapWithKeys(
+            fn (int $rating): array => [$rating => $reviews->where('rating', $rating)->count()]
+        );
+        $eligibleOrderItem = null;
+        $myReview = null;
+
+        if (auth()->check()) {
+            $eligibleOrderItem = OrderItem::query()
+                ->with('order:id,order_number,user_id,status')
+                ->where('product_id', $product->id)
+                ->whereHas('order', fn ($query) => $query
+                    ->where('user_id', auth()->id())
+                    ->where('status', 'completed'))
+                ->latest('id')
+                ->first();
+            $myReview = Review::query()
+                ->where('product_id', $product->id)
+                ->where('user_id', auth()->id())
+                ->first();
+        }
+
+        return view('store.product', compact(
+            'product',
+            'related',
+            'images',
+            'firstImage',
+            'isWishlisted',
+            'reviews',
+            'reviewAverage',
+            'ratingCounts',
+            'eligibleOrderItem',
+            'myReview',
+        ));
     }
 
     public function trackingForm()
