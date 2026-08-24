@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class ProductGallerySeeder extends Seeder
 {
@@ -13,43 +14,29 @@ class ProductGallerySeeder extends Seeder
 
     public function run(): void
     {
-        $watchImages = [
-            'https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=1400&q=88',
-            'https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?auto=format&fit=crop&w=1400&q=88',
-            'https://images.unsplash.com/photo-1547996160-81dfa63595aa?auto=format&fit=crop&w=1400&q=88',
-            'https://images.unsplash.com/photo-1612817159949-195b6eb9e31a?auto=format&fit=crop&w=1400&q=88',
-            'https://images.unsplash.com/photo-1434056886845-dac89ffe9b56?auto=format&fit=crop&w=1400&q=88',
-            'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&w=1400&q=88',
-            'https://images.unsplash.com/photo-1622434641406-a158123450f9?auto=format&fit=crop&w=1400&q=88',
-            'https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&w=1400&q=88',
-            'https://images.unsplash.com/photo-1539874754764-5a96559165b0?auto=format&fit=crop&w=1400&q=88',
-            'https://images.unsplash.com/photo-1495856458515-0637185db551?auto=format&fit=crop&w=1400&q=88',
-        ];
-        $jewelryImages = [
-            'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=1400&q=88',
-            'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=1400&q=88',
-            'https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=1400&q=88',
-            'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=1400&q=88',
-            'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=1400&q=88',
-            'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?auto=format&fit=crop&w=1400&q=88',
-            'https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=1400&q=88',
-            'https://images.unsplash.com/photo-1673131158657-4404fd1f041a?auto=format&fit=crop&w=1400&q=88',
-            'https://images.unsplash.com/photo-1599459183200-59c7687a0275?auto=format&fit=crop&w=1400&q=88',
-            'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?auto=format&fit=crop&w=1400&q=88',
-        ];
+        $exactGalleries = $this->exactGalleries();
 
         Product::query()->where('status', 'active')->orderBy('id')->each(
-            function (Product $product) use ($watchImages, $jewelryImages): void {
-                $pool = $product->product_type === 'watch' ? $watchImages : $jewelryImages;
+            function (Product $product) use ($exactGalleries): void {
                 $primaryPath = $product->images()->where('is_primary', true)->value('path')
                     ?? $product->images()->orderBy('sort_order')->value('path');
-                $candidates = collect($pool)
-                    ->reject(fn (string $path): bool => $path === $primaryPath)
-                    ->values();
-                $offset = ($product->id * 3) % $candidates->count();
+                $gallery = $exactGalleries[$product->slug] ?? null;
 
-                foreach (range(2, 4) as $sortOrder) {
-                    $path = $candidates[($offset + $sortOrder - 2) % $candidates->count()];
+                if ($gallery === null && $primaryPath === null) {
+                    return;
+                }
+
+                $images = $gallery['images'] ?? $this->coherentConceptGallery($primaryPath);
+                $sourceUrl = $gallery['source_url'] ?? $product->source_url;
+
+                if ($gallery !== null) {
+                    $product->forceFill(['source_url' => $sourceUrl])->save();
+                }
+
+                $product->images()->update(['is_primary' => false]);
+
+                foreach ($images as $index => $path) {
+                    $sortOrder = $index + 1;
 
                     ProductImage::updateOrCreate(
                         ['product_id' => $product->id, 'sort_order' => $sortOrder],
@@ -57,14 +44,144 @@ class ProductGallerySeeder extends Seeder
                             'product_variant_id' => null,
                             'storage_disk' => 'external',
                             'path' => $path,
-                            'alt_text' => $product->name.' — góc chụp '.($sortOrder - 1),
-                            'is_primary' => false,
-                            'is_licensed' => true,
-                            'source_url' => 'https://unsplash.com/',
+                            'alt_text' => $product->name.' — ảnh '.($sortOrder),
+                            'is_primary' => $sortOrder === 1,
+                            'is_licensed' => false,
+                            'source_url' => $sourceUrl,
                         ],
                     );
                 }
+
+                $product->images()->whereNotIn('sort_order', range(1, count($images)))->delete();
             }
         );
+    }
+
+    /**
+     * Product photos are deliberately keyed by the exact store slug/model. Do not
+     * replace this with a shared watch/jewelry pool: that can mix different models.
+     *
+     * @return array<string, array{source_url: string, images: list<string>}>
+     */
+    private function exactGalleries(): array
+    {
+        return [
+            'seiko-presage-cocktail-time-srpb43' => [
+                'source_url' => 'https://seikousa.com/products/srpb43',
+                'images' => [
+                    'https://seikousa.com/cdn/shop/files/SRPB43_1_91811358-199c-4511-af1c-24d997ab93ad.png?v=1787072328&width=1946',
+                    'https://seikousa.com/cdn/shop/files/SRPB43_2_cb18745c-bd6b-47a8-8c57-b6ea13a51ed8.png?v=1787072328&width=1946',
+                    'https://seikousa.com/cdn/shop/files/SRPB43_3_1379e4c0-36aa-4c74-ba2e-0284892406c3.png?v=1787072328&width=1946',
+                    'https://seikousa.com/cdn/shop/files/SRPB43_4_d4438d03-2937-4818-b4db-c8cfc412cab4.png?v=1787072328&width=1946',
+                ],
+            ],
+            'citizen-tsuyosa-nj0150-56l' => [
+                'source_url' => 'https://www.citizenwatch.com/ca/en/product/NJ0150-56L.html',
+                'images' => [
+                    'https://citizenwatch.widen.net/content/thxpu5c2rt/webp/TSUYOSA.webp?u=41zuoe&width=1000&height=1250&quality=86&crop=false&keep=c&color=F9F8F6',
+                    'https://citizenwatch.widen.net/content/qhr0rjdfs1/webp/TSUYOSA.webp?u=41zuoe&width=1000&height=1250&quality=86&crop=false&keep=c&color=F9F8F6',
+                    'https://citizenwatch.widen.net/content/vcsv9dkvun/webp/TSUYOSA.webp?u=41zuoe&width=1000&height=1250&quality=86&crop=false&keep=c&color=F9F8F6',
+                    'https://citizenwatch.widen.net/content/hezi7vpbpu/webp/TSUYOSA.webp?u=41zuoe&width=1000&height=1250&quality=86&crop=false&keep=c&color=F9F8F6',
+                ],
+            ],
+            'pandora-row-of-hearts-ring' => [
+                'source_url' => 'https://us.pandora.net/en/rings/stackable-rings/row-of-hearts-ring/193427C00.html',
+                'images' => [
+                    'https://us.pandora.net/dw/image/v2/AAVX_PRD/on/demandware.static/-/Sites-pandora-master-catalog/default/dw22ae2168/productimages/main_rect_center/193427C00_RGB.jpg?bgcolor=F7F7F7&q=85&sfrm=png&sw=1000',
+                    'https://us.pandora.net/dw/image/v2/AAVX_PRD/on/demandware.static/-/Sites-pandora-master-catalog/default/dw1db89bf9/productimages/singlepackshot_rect_center/193427C00_V2_RGB.jpg?bgcolor=F7F7F7&q=85&sfrm=png&sw=1000',
+                    'https://us.pandora.net/dw/image/v2/AAVX_PRD/on/demandware.static/-/Sites-pandora-master-catalog/default/dw2fb47f89/productimages/modeldetailshot_rect/Q324_E_PDP_MODEL_SINGLE_17_1x1_RGB_ring.jpg?bgcolor=F7F7F7&q=85&sfrm=png&sw=1000',
+                    'https://us.pandora.net/dw/image/v2/AAVX_PRD/on/demandware.static/-/Sites-pandora-master-catalog/default/dwa7236044/productimages/styledmodelimage_rect/Q324_E_PDP_MODEL_STYLED_04_1x1_RGB.jpg?bgcolor=F7F7F7&q=85&sfrm=png&sw=1000',
+                ],
+            ],
+            'mejuri-mini-hoops' => [
+                'source_url' => 'https://mejuri.com/products/mini-hoops',
+                'images' => [
+                    'https://cdn.shopify.com/s/files/1/0797/3637/3533/files/0-SingleMiniHoop-14K-Angled_045_new_1a0b95bc-7532-4ee0-a1aa-ad2079c57e04.png?v=1758043892&width=1200',
+                    'https://cdn.shopify.com/s/files/1/0797/3637/3533/files/2-SingleMiniHoop-14k-Stack_025.jpg?v=1758043892&width=1200',
+                    'https://cdn.shopify.com/s/files/1/0797/3637/3533/files/3-SingleMiniHoop-14K-Clasp_131_new_1bd23ca4-3c7c-4b8e-8435-3cd482275711.png?v=1758043892&width=1200',
+                    'https://cdn.shopify.com/s/files/1/0797/3637/3533/files/1-Reshoot_MiniHoop_YG_Stack_016.jpg?v=1758043892&width=1200',
+                ],
+            ],
+            'tissot-prx-powermatic-80-40mm' => [
+                'source_url' => 'https://www.tissotwatches.com/en-sg/T1374071104100.html',
+                'images' => [
+                    'https://www.tissotwatches.com/dw/image/v2/BKKD_PRD/on/demandware.static/-/Sites-Tissot-Catalogue/default/dw95c4331d/product-pictures/63f42767-a9f5-4cdd-b952-8ea7b82b7e0c_T137-407-11-041-00_shadow.png?sh=800%2Cgravity%3Dcenter&sm=fit&sw=800',
+                    'https://www.tissotwatches.com/dw/image/v2/BKKD_PRD/on/demandware.static/-/Sites-Tissot-Catalogue/default/dwe70b269e/product-pictures/cb22b17c-ceea-4284-bffc-9e4eaa61acb3_T137_407_11_041_00_B1.png?sh=800%2Cgravity%3Dcenter&sm=fit&sw=800',
+                    'https://www.tissotwatches.com/dw/image/v2/BKKD_PRD/on/demandware.static/-/Sites-Tissot-Catalogue/default/dwe4bc4324/product-pictures/0b15ba27-315a-43d9-ab0a-255d0ade805f_T605-046-447_ZOOM.png?sh=800%2Cgravity%3Dcenter&sm=fit&sw=800',
+                    'https://www.tissotwatches.com/dw/image/v2/BKKD_PRD/on/demandware.static/-/Sites-Tissot-Catalogue/default/dwdb099ca4/product-pictures/181e9598-ab66-498a-a38a-f25cb9725dc6_T137_407_11_041_00_WRIST.png?sh=800%2Cgravity%3Dcenter&sm=fit&sw=800',
+                ],
+            ],
+            'orient-bambino-38-small-seconds' => [
+                'source_url' => 'https://www.orientwatchusa.com/products/ra-ap0105y30b',
+                'images' => [
+                    'https://www.ashford.com/cdn/shop/files/RA-AP0105Y_F.jpg?v=1761219502',
+                    'https://i.ebayimg.com/images/g/X0MAAOSw2u1oBPaS/s-l1200.jpg',
+                    'https://i.ebayimg.com/images/g/6fEAAOSwx11oBPaT/s-l1200.jpg',
+                    'https://www.hsjohnson.com/cdn/shop/files/jpeg-optimizer_RA-AP0105Y30B_Custom.jpg?v=1726473252&width=1080',
+                ],
+            ],
+            'seiko-5-sports-srpd55k1' => [
+                'source_url' => 'https://seikousa.com/products/srpd55',
+                'images' => [
+                    'https://seikousa.com/cdn/shop/files/SRPD55_1_7d0da364-2778-4b4d-a1e8-be406cb6965b.png?v=1786545460&width=1946',
+                    'https://seikousa.com/cdn/shop/files/SRPD55_2_e057158a-412f-458d-a521-1b10a5eb1cb6.png?v=1786545460&width=1946',
+                    'https://seikousa.com/cdn/shop/files/SRPD55_3_c3792c5b-d75a-43e2-b0e9-8f2d6f4cad3d.png?v=1786545460&width=1946',
+                    'https://seikousa.com/cdn/shop/files/SRPD55_4_da371811-da57-44cc-b548-d2209fa47a9f.png?v=1786545460&width=1946',
+                ],
+            ],
+            'citizen-eco-drive-field-bm8180' => [
+                'source_url' => 'https://www.citizenwatch.com/us/en/product/BM8180-03E',
+                'images' => [
+                    'https://citizenwatch.widen.net/content/gzoliud0hm/webp',
+                    'https://citizenwatch.widen.net/content/rqeea2ndfy/webp',
+                    'https://citizenwatch.widen.net/content/menkjxay6b/webp',
+                    'https://citizenwatch.widen.net/content/hezi7vpbpu/webp',
+                ],
+            ],
+            'tissot-le-locle-powermatic-80' => [
+                'source_url' => 'https://www.tissotwatches.com/es-es/T0064071603300.html',
+                'images' => [
+                    'https://www.tissotwatches.com/dw/image/v2/BKKD_PRD/on/demandware.static/-/Sites-Tissot-Catalogue/default/dw5a850c8f/product-pictures/2c472ef0-ed0f-435d-b047-2aa567465433_T006-407-16-033-00_shadow.png?sh=800%2Cgravity%3Dcenter&sm=fit&sw=800',
+                    'https://www.tissotwatches.com/dw/image/v2/BKKD_PRD/on/demandware.static/-/Sites-Tissot-Catalogue/default/dw9dd9758a/product-pictures/9e6e841a-b73e-4cda-8ff3-ff667a680dc4_T006-407-16-033-00_Profil.png?sh=800%2Cgravity%3Dcenter&sm=fit&sw=800',
+                    'https://www.tissotwatches.com/dw/image/v2/BKKD_PRD/on/demandware.static/-/Sites-Tissot-Catalogue/default/dwdb5fda20/product-pictures/7133006f-fe6d-4547-9fac-792fef26ef51_T006_407_16_033_00_B1.png?sh=800%2Cgravity%3Dcenter&sm=fit&sw=800',
+                    'https://www.tissotwatches.com/dw/image/v2/BKKD_PRD/on/demandware.static/-/Sites-Tissot-Catalogue/default/dw18ff4806/product-pictures/c8598887-9038-4abe-8fc7-877a02c3f1ad_T006_407_16_033_00_WRIST.png?sh=800%2Cgravity%3Dcenter&sm=fit&sw=800',
+                ],
+            ],
+            'orient-kamasu-red-dial' => [
+                'source_url' => 'https://www.orientwatchusa.com/products/ra-aa0003r39b',
+                'images' => [
+                    'https://mzwatcheslk.com/cdn/shop/files/5C1CCA21-02BE-46CF-84E8-569FB681F9C5.jpg?v=1719190267&width=1946',
+                    'https://img.chrono24.com/images/uhren/34934344-ix81jxy6hkaozmm7ux5g4id1-ExtraLarge.jpg',
+                    'https://www.zegarek.net/imageslib/produkty/duze/zegarek-meski-orient-classic-automatic-ra-aa0003r19b-mako-iii-3.jpg',
+                    'https://www.zegarek.net/imageslib/produkty/duze/zegarek-meski-orient-sports-ra-aa0003r19b-mako-iii-9.jpg',
+                ],
+            ],
+            'casio-edifice-slim-sapphire' => [
+                'source_url' => 'https://www.casio.com/intl/watches/edifice/product.EFR-S108D-2AV/',
+                'images' => [
+                    'https://www.casio.com/content/dam/casio/product-info/locales/intl/en/timepiece/product/watch/E/EF/EFR/efr-s108d-2av/assets/EFR-S108D-2AVU.png.transform/main-visual-sp/image.png',
+                    'https://www.casio.com/content/dam/casio/product-info/locales/intl/en/timepiece/product/watch/E/EF/EFR/efr-s108d-2av/assets/EFR-S108D-2AV_theme02.jpg.transform/main-visual-sp/image.jpg',
+                    'https://www.casio.com/content/dam/casio/product-info/locales/intl/en/timepiece/product/watch/E/EF/EFR/efr-s108d-2av/assets/EFR-S108D-2AV_theme03.jpg.transform/main-visual-sp/image.jpg',
+                    'https://www.casio.com/content/dam/casio/product-info/locales/intl/en/timepiece/product/watch/E/EF/EFR/efr-s108d-2av/assets/EFR-S108D-2AV_theme04.jpg.transform/main-visual-sp/image.jpg',
+                ],
+            ],
+        ];
+    }
+
+    /** @return list<string> */
+    private function coherentConceptGallery(string $primaryPath): array
+    {
+        if (! Str::contains($primaryPath, 'images.unsplash.com')) {
+            return array_fill(0, 4, $primaryPath);
+        }
+
+        $basePath = Str::before($primaryPath, '?');
+
+        return [
+            $basePath.'?auto=format&fit=crop&w=1400&q=88',
+            $basePath.'?auto=format&fit=crop&w=1400&h=1400&crop=center&q=88',
+            $basePath.'?auto=format&fit=crop&w=1400&h=1400&crop=entropy&q=88',
+            $basePath.'?auto=format&fit=crop&w=1400&h=1400&crop=edges&q=88',
+        ];
     }
 }
