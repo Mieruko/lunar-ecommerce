@@ -36,6 +36,15 @@
             @if(request('q'))<input type="hidden" name="q" value="{{ request('q') }}">@endif
 
             <details class="filter-group" open>
+                <summary>Danh mục <span>+</span></summary>
+                <div class="filter-options">
+                    @foreach($categories as $category)
+                        <label><input type="checkbox" name="filter[category][]" value="{{ $category->id }}" @checked(in_array((string)$category->id, array_map('strval',(array)($filters['category']??[]))))><span>{{ $category->name }}</span></label>
+                    @endforeach
+                </div>
+            </details>
+
+            <details class="filter-group" open>
                 <summary>Thương hiệu <span>+</span></summary>
                 <div class="filter-options">
                     @foreach($brands as $brand)
@@ -62,6 +71,9 @@
                     <div class="filter-options">
                         <label><input type="checkbox" name="filter[jewelry_type][]" value="ring" @checked(in_array('ring',(array)($filters['jewelry_type']??[])))><span>Nhẫn</span></label>
                         <label><input type="checkbox" name="filter[jewelry_type][]" value="earrings" @checked(in_array('earrings',(array)($filters['jewelry_type']??[])))><span>Bông tai</span></label>
+                        <label><input type="checkbox" name="filter[jewelry_type][]" value="necklace" @checked(in_array('necklace',(array)($filters['jewelry_type']??[])))><span>Dây chuyền</span></label>
+                        <label><input type="checkbox" name="filter[jewelry_type][]" value="bracelet" @checked(in_array('bracelet',(array)($filters['jewelry_type']??[])))><span>Lắc tay</span></label>
+                        <label><input type="checkbox" name="filter[jewelry_type][]" value="pendant" @checked(in_array('pendant',(array)($filters['jewelry_type']??[])))><span>Mặt dây chuyền</span></label>
                         @foreach($materials as $material)
                             <label><input type="checkbox" name="filter[material][]" value="{{ $material->id }}" @checked(in_array((string)$material->id, array_map('strval',(array)($filters['material']??[]))))><span>{{ $material->name }}</span></label>
                         @endforeach

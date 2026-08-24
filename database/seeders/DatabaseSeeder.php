@@ -5,15 +5,15 @@ namespace Database\Seeders;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Inventory;
+use App\Models\JewelryDetail;
+use App\Models\Permission;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductVariant;
-use App\Models\Permission;
 use App\Models\Role;
+use App\Models\User;
 use App\Models\Warehouse;
 use App\Models\WatchDetail;
-use App\Models\JewelryDetail;
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -90,9 +90,15 @@ class DatabaseSeeder extends Seeder
             $variant = ProductVariant::updateOrCreate(['sku' => $record['sku']], ['product_id' => $product->id, 'name' => $record['variant'], 'price_amount' => $record['price'], 'status' => 'active']);
             ProductImage::updateOrCreate(['product_id' => $product->id, 'is_primary' => true], ['product_variant_id' => $variant->id, 'storage_disk' => 'external', 'path' => $record['image'], 'alt_text' => $record['name'], 'sort_order' => 1, 'is_licensed' => false]);
             Inventory::updateOrCreate(['warehouse_id' => $warehouse->id, 'product_variant_id' => $variant->id], ['quantity_on_hand' => 8, 'quantity_reserved' => 0, 'reorder_level' => 2]);
-            if ($record['type'] === 'watch') WatchDetail::updateOrCreate(['product_id' => $product->id], $record['detail']); else JewelryDetail::updateOrCreate(['product_id' => $product->id], $record['detail']);
+            if ($record['type'] === 'watch') {
+                WatchDetail::updateOrCreate(['product_id' => $product->id], $record['detail']);
+            } else {
+                JewelryDetail::updateOrCreate(['product_id' => $product->id], $record['detail']);
+            }
         }
 
         \DB::table('store_settings')->updateOrInsert(['key' => 'paypal_vnd_usd_rate'], ['value' => '25000', 'updated_at' => now(), 'created_at' => now()]);
+
+        $this->call(CatalogExpansionSeeder::class);
     }
 }

@@ -111,20 +111,33 @@
 
     <div class="specs">
         @if ($product->watchDetail)
-            @foreach (['Bộ máy' => 'movement', 'Caliber' => 'caliber', 'Chất liệu vỏ' => 'case_material', 'Đường kính' => 'case_diameter_mm', 'Mặt số' => 'dial_color', 'Kháng nước' => 'water_resistance_m', 'Mặt kính' => 'crystal', 'Dây đeo' => 'strap_material', 'Trữ cót' => 'power_reserve_hours'] as $label => $field)
+            @foreach (['Bộ máy' => 'movement', 'Caliber' => 'caliber', 'Chất liệu vỏ' => 'case_material', 'Đường kính' => 'case_diameter_mm', 'Độ dày' => 'case_thickness_mm', 'Mặt số' => 'dial_color', 'Kháng nước' => 'water_resistance_m', 'Mặt kính' => 'crystal', 'Dây đeo' => 'strap_material', 'Màu dây' => 'strap_color', 'Loại khóa' => 'clasp_type', 'Trữ cót' => 'power_reserve_hours', 'Bảo hành' => 'warranty_months'] as $label => $field)
                 @if ($product->watchDetail->{$field})
                     <div>
                         <span>{{ $label }}</span>
-                        <b>{{ $product->watchDetail->{$field} }}{{ $field === 'case_diameter_mm' ? ' mm' : ($field === 'water_resistance_m' ? ' m' : ($field === 'power_reserve_hours' ? ' giờ' : '')) }}</b>
+                        <b>{{ $product->watchDetail->{$field} }}{{ in_array($field, ['case_diameter_mm', 'case_thickness_mm']) ? ' mm' : ($field === 'water_resistance_m' ? ' m' : ($field === 'power_reserve_hours' ? ' giờ' : ($field === 'warranty_months' ? ' tháng' : ''))) }}</b>
                     </div>
                 @endif
             @endforeach
+            @if(filled($product->watchDetail->functions))
+                <div class="spec-wide"><span>Chức năng</span><b>{{ implode(' · ', $product->watchDetail->functions) }}</b></div>
+            @endif
         @elseif ($product->jewelryDetail)
-            @foreach (['Loại' => 'jewelry_type', 'Phong cách' => 'style', 'Size' => 'ring_size_system', 'Kích thước' => 'dimensions', 'Mạ' => 'plating'] as $label => $field)
+            @php($jewelryTypes = ['ring' => 'Nhẫn', 'earrings' => 'Bông tai', 'necklace' => 'Dây chuyền', 'bracelet' => 'Lắc tay', 'pendant' => 'Mặt dây chuyền', 'other' => 'Trang sức'])
+            @foreach (['Loại' => 'jewelry_type', 'Đối tượng' => 'gender', 'Phong cách' => 'style', 'Hệ size nhẫn' => 'ring_size_system', 'Dài dây chuyền' => 'chain_length_mm', 'Dài lắc tay' => 'bracelet_length_mm', 'Kích thước' => 'dimensions', 'Trọng lượng' => 'total_weight_grams', 'Lớp mạ' => 'plating'] as $label => $field)
                 @if ($product->jewelryDetail->{$field})
-                    <div><span>{{ $label }}</span><b>{{ $product->jewelryDetail->{$field} }}</b></div>
+                    <div><span>{{ $label }}</span><b>{{ $field === 'jewelry_type' ? ($jewelryTypes[$product->jewelryDetail->{$field}] ?? $product->jewelryDetail->{$field}) : $product->jewelryDetail->{$field} }}{{ in_array($field, ['chain_length_mm', 'bracelet_length_mm']) ? ' mm' : ($field === 'total_weight_grams' ? ' g' : '') }}</b></div>
                 @endif
             @endforeach
+            @if($product->materials->isNotEmpty())
+                <div class="spec-wide"><span>Chất liệu</span><b>{{ $product->materials->map(fn($material) => $material->name.($material->pivot->percentage ? ' '.$material->pivot->percentage.'%' : ''))->implode(' · ') }}</b></div>
+            @endif
+            @if($product->gemstones->isNotEmpty())
+                <div class="spec-wide"><span>Đá đính</span><b>{{ $product->gemstones->map(fn($stone) => $stone->name.' × '.$stone->pivot->quantity.($stone->pivot->total_carat ? ' · '.$stone->pivot->total_carat.' ct' : ''))->implode(' · ') }}</b></div>
+            @endif
+            @if($product->jewelryDetail->care_instructions)
+                <div class="spec-wide"><span>Hướng dẫn bảo quản</span><b>{{ $product->jewelryDetail->care_instructions }}</b></div>
+            @endif
         @endif
     </div>
 </section>

@@ -6,10 +6,13 @@ use App\Models\Order;
 use App\Models\OrderStatusHistory;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class OrderStatusService
 {
+    public function __construct(private StockService $stock) {}
+
     private const TRANSITIONS = [
         'pending_confirmation' => ['confirmed', 'cancelled'],
         'confirmed' => ['preparing', 'cancelled'],
@@ -37,6 +40,12 @@ class OrderStatusService
                 ]);
             }
 
+            if ($targetStatus === 'cancelled' && blank($comment)) {
+                throw ValidationException::withMessages([
+                    'cancellation_reason' => 'Vui lòng nhập lý do hủy đơn.',
+                ]);
+            }
+
             if ($targetStatus === 'shipping' && ! $lockedOrder->shipments()
                 ->where('status', 'shipped')
                 ->whereNotNull('carrier')
@@ -57,7 +66,32 @@ class OrderStatusService
                 }
             }
 
-            $lockedOrder->update(['status' => $targetStatus]);
+            $changes = ['status' => $targetStatus];
+            if ($targetStatus === 'cancelled') {
+                $changes['cancellation_reason'] = trim((string) $comment);
+                $changes['cancelled_at'] = now();
+            }
+            $lockedOrder->update($changes);
+
+            if ($targetStatus === 'cancelled') {
+                $this->stock->restoreForCancellation($lockedOrder);
+                $lockedOrder->shipments()
+                    ->whereNotIn('status', ['delivered', 'returned'])
+                    ->update(['status' => 'cancelled', 'updated_at' => now()]);
+            }
+
+            if ($targetStatus === 'preparing') {
+                $lockedOrder->shipments()->firstOrCreate([], [
+                    'carrier' => 'LUNAR Fulfillment',
+                    'tracking_number' => sprintf(
+                        'LJ-%s-%06d-%s',
+                        now()->format('ymd'),
+                        $lockedOrder->id,
+                        Str::upper(Str::random(4)),
+                    ),
+                    'status' => 'pending',
+                ]);
+            }
             OrderStatusHistory::create([
                 'order_id' => $lockedOrder->id,
                 'status' => $targetStatus,

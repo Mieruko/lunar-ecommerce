@@ -11,6 +11,7 @@ class ShipmentObserver
         'packed' => ['Đơn hàng đã đóng gói', 'Sản phẩm đã được kiểm tra và đóng gói, sẵn sàng bàn giao vận chuyển.'],
         'failed' => ['Giao hàng chưa thành công', 'Đơn vị vận chuyển chưa thể giao hàng. Lunar Jewels sẽ tiếp tục hỗ trợ bạn.'],
         'returned' => ['Vận đơn đang hoàn về', 'Đơn hàng đang được đơn vị vận chuyển hoàn lại Lunar Jewels.'],
+        'cancelled' => ['Vận đơn đã hủy', 'Vận đơn đã được đóng do đơn hàng bị hủy.'],
     ];
 
     public function updated(Shipment $shipment): void

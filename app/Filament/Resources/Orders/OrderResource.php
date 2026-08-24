@@ -9,6 +9,8 @@ use App\Services\OrderStatusService;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Textarea;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\RepeatableEntry\TableColumn;
 use Filament\Infolists\Components\TextEntry;
@@ -17,6 +19,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -27,10 +30,15 @@ class OrderResource extends Resource
     protected static ?string $model = Order::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
+
     protected static ?string $navigationLabel = 'Đơn hàng';
+
     protected static ?string $modelLabel = 'đơn hàng';
+
     protected static ?string $pluralModelLabel = 'đơn hàng';
+
     protected static string|\UnitEnum|null $navigationGroup = 'Bán hàng';
+
     protected static ?int $navigationSort = 10;
 
     public static function form(Schema $schema): Schema
@@ -187,6 +195,11 @@ class OrderResource extends Resource
                     ->columnSpan(12)
                     ->schema([
                         TextEntry::make('note')->label('Ghi chú của khách')->placeholder('Không có'),
+                        TextEntry::make('cancellation_reason')
+                            ->label('Lý do hủy đơn')
+                            ->visible(fn (Order $record): bool => $record->status === 'cancelled')
+                            ->color('danger')
+                            ->columnSpanFull(),
                         RepeatableEntry::make('notes')
                             ->label('Ghi chú nội bộ')
                             ->schema([
@@ -241,7 +254,20 @@ class OrderResource extends Resource
             ->filters([
                 SelectFilter::make('status')->label('Trạng thái đơn')->options(self::statusOptions()),
                 SelectFilter::make('payment_status')->label('Thanh toán')->options(self::paymentStatusOptions()),
+                Filter::make('placed_at')
+                    ->label('Ngày đặt hàng')
+                    ->schema([
+                        DatePicker::make('from')->label('Từ ngày'),
+                        DatePicker::make('until')->label('Đến ngày'),
+                    ])
+                    ->columns(2)
+                    ->query(fn (Builder $query, array $data): Builder => $query
+                        ->when($data['from'] ?? null, fn (Builder $query, $date): Builder => $query->whereDate('placed_at', '>=', $date))
+                        ->when($data['until'] ?? null, fn (Builder $query, $date): Builder => $query->whereDate('placed_at', '<=', $date))),
             ])
+            ->persistSearchInSession()
+            ->persistFiltersInSession()
+            ->defaultPaginationPageOption(25)
             ->recordUrl(fn (Order $record): string => self::getUrl('view', ['record' => $record]))
             ->recordActions([
                 ViewAction::make()->label('Xem'),
@@ -263,22 +289,50 @@ class OrderResource extends Resource
         ];
     }
 
-    public static function canCreate(): bool { return false; }
-    public static function canEdit(Model $record): bool { return false; }
-    public static function canDelete(Model $record): bool { return false; }
+    public static function canCreate(): bool
+    {
+        return false;
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return false;
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return false;
+    }
 
     public static function transitionAction(string $name, string $label, string $target, string $color): Action
     {
-        return Action::make($name)
+        $action = Action::make($name)
             ->label($label)
             ->color($color)
             ->requiresConfirmation()
             ->visible(fn (Order $record): bool => $target !== 'shipping' && in_array($target, app(OrderStatusService::class)->nextStatuses($record), true))
-            ->authorize(fn (): bool => auth()->user()?->hasPermission('orders.update_status') ?? false)
-            ->action(function (Order $record) use ($target): void {
-                app(OrderStatusService::class)->transition($record, $target, auth()->user());
-                $record->refresh();
-            });
+            ->authorize(fn (): bool => auth()->user()?->hasPermission('orders.update_status') ?? false);
+
+        if ($target === 'cancelled') {
+            $action->schema([
+                Textarea::make('reason')
+                    ->label('Lý do hủy đơn')
+                    ->helperText('Lý do sẽ được lưu trong lịch sử đơn hàng và hiển thị cho quản lý.')
+                    ->rows(4)
+                    ->required()
+                    ->maxLength(500),
+            ]);
+        }
+
+        return $action->action(function (Order $record, array $data = []) use ($target): void {
+            app(OrderStatusService::class)->transition(
+                $record,
+                $target,
+                auth()->user(),
+                $target === 'cancelled' ? ($data['reason'] ?? null) : null,
+            );
+            $record->refresh();
+        });
     }
 
     public static function statusOptions(): array

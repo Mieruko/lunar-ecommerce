@@ -7,15 +7,17 @@ use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Category;
 use App\Models\Inventory;
+use App\Models\JewelryDetail;
+use App\Models\Material;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\ProductVariant;
-use App\Models\Warehouse;
 use App\Models\ShippingZone;
+use App\Models\User;
 use App\Models\VietnamProvince;
 use App\Models\VietnamWard;
-use App\Models\User;
+use App\Models\Warehouse;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\Http;
@@ -33,6 +35,7 @@ class StorefrontTest extends TestCase
         $variant = ProductVariant::create(['product_id' => $product->id, 'sku' => 'LUNAR-AUTO-01', 'name' => 'Mặt xanh', 'price_amount' => 5000000, 'status' => 'active']);
         $warehouse = Warehouse::create(['code' => 'TEST', 'name' => 'Kho test', 'country_code' => 'VN', 'is_active' => true]);
         Inventory::create(['warehouse_id' => $warehouse->id, 'product_variant_id' => $variant->id, 'quantity_on_hand' => 4, 'quantity_reserved' => 0]);
+
         return $product;
     }
 
@@ -79,7 +82,9 @@ class StorefrontTest extends TestCase
 
     public function test_guest_can_browse_add_to_cart_and_place_cod_order(): void
     {
-        $this->withoutVite(); $product = $this->product(); $variant = $product->variants()->first();
+        $this->withoutVite();
+        $product = $this->product();
+        $variant = $product->variants()->first();
         $zone = ShippingZone::create(['code' => 'test', 'name' => 'Khu vực test', 'fee_vnd' => 30000, 'free_shipping_threshold_vnd' => 5000000, 'is_active' => true]);
         VietnamProvince::create(['code' => '79', 'name' => 'Hồ Chí Minh', 'full_name' => 'Thành phố Hồ Chí Minh', 'shipping_zone_id' => $zone->id]);
         VietnamWard::create(['code' => '26734', 'province_code' => '79', 'name' => 'Bến Nghé', 'full_name' => 'Phường Bến Nghé', 'shipping_zone_id' => $zone->id]);
@@ -104,7 +109,7 @@ class StorefrontTest extends TestCase
         $this->post(route('checkout.shipping.store'), ['shipping' => ['recipient_name' => 'Nguyen Van A', 'email' => 'a@example.test', 'phone' => '0900000001', 'line_1' => '1 Nguyen Hue', 'province_code' => '79', 'ward_code' => '26734']]);
         $response = $this->post(route('checkout.place'), ['shipping_method' => 'standard', 'payment_method' => 'bank_transfer']);
 
-        $order = \App\Models\Order::firstOrFail();
+        $order = Order::firstOrFail();
         $response->assertRedirect(route('checkout.confirmation', $order));
         $this->assertDatabaseHas('payments', ['order_id' => $order->id, 'provider' => 'bank_transfer', 'status' => 'pending']);
         $this->get(route('checkout.confirmation', $order))->assertOk()->assertSee('Quét mã để chuyển khoản')->assertSee('TECHCOMBANK')->assertSee('img.vietqr.io');
@@ -190,6 +195,32 @@ class StorefrontTest extends TestCase
         $this->get(route('home'))
             ->assertOk()
             ->assertSee('<span class="counter">0</span>', false);
+    }
+
+    public function test_jewelry_detail_page_displays_material_and_care_specs(): void
+    {
+        $this->withoutVite();
+        $category = Category::create(['name' => 'Nhẫn', 'slug' => 'rings', 'is_active' => true]);
+        $product = Product::create([
+            'category_id' => $category->id,
+            'name' => 'Celeste Test Ring',
+            'slug' => 'celeste-test-ring',
+            'product_type' => 'jewelry',
+            'status' => 'active',
+            'base_price_amount' => 12000000,
+            'currency' => 'VND',
+        ]);
+        $variant = ProductVariant::create(['product_id' => $product->id, 'sku' => 'RING-TEST', 'name' => 'EU 52', 'price_amount' => 12000000, 'status' => 'active']);
+        $warehouse = Warehouse::create(['code' => 'JEWEL-TEST', 'name' => 'Kho trang sức', 'country_code' => 'VN', 'is_active' => true]);
+        Inventory::create(['warehouse_id' => $warehouse->id, 'product_variant_id' => $variant->id, 'quantity_on_hand' => 1, 'quantity_reserved' => 0]);
+        JewelryDetail::create(['product_id' => $product->id, 'jewelry_type' => 'ring', 'dimensions' => 'Mặt nhẫn 8 mm', 'care_instructions' => 'Tránh hóa chất và va đập mạnh.']);
+        $material = Material::create(['name' => 'Vàng trắng 18K', 'material_type' => 'metal']);
+        $product->materials()->attach($material, ['percentage' => 75]);
+
+        $this->get(route('products.show', $product))
+            ->assertOk()
+            ->assertSee('Vàng trắng 18K 75%')
+            ->assertSee('Tránh hóa chất và va đập mạnh.');
     }
 
     public function test_paypal_connection_failure_releases_the_attempt_and_returns_to_checkout(): void
