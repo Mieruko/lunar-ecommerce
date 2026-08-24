@@ -82,14 +82,15 @@ class CatalogExpansionSeeder extends Seeder
                 'weight_grams' => $record['weight'] ?? null,
                 'status' => 'active',
             ]);
+            $isLocalConceptImage = str_starts_with($record['image'], '/images/products/concepts/');
             ProductImage::updateOrCreate(['product_id' => $product->id, 'is_primary' => true], [
                 'product_variant_id' => $variant->id,
-                'storage_disk' => 'external',
+                'storage_disk' => $isLocalConceptImage ? 'public' : 'external',
                 'path' => $record['image'],
                 'alt_text' => $record['name'],
                 'sort_order' => 1,
                 'is_licensed' => true,
-                'source_url' => $record['image'],
+                'source_url' => $isLocalConceptImage ? null : $record['image'],
             ]);
             Inventory::updateOrCreate(['warehouse_id' => $warehouse->id, 'product_variant_id' => $variant->id], [
                 'quantity_on_hand' => $record['stock'], 'quantity_reserved' => 0, 'reorder_level' => 2,
@@ -155,13 +156,13 @@ class CatalogExpansionSeeder extends Seeder
             'https://www.casio.com/content/dam/casio/product-info/locales/intl/en/timepiece/product/watch/E/EF/EFR/efr-s108d-2av/assets/EFR-S108D-2AVU.png.transform/main-visual-sp/image.png',
         ];
         $jewelryImages = [
-            'https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=1200&q=85',
-            'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=1200&q=85',
-            'https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=1200&q=85',
-            'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=1200&q=85',
-            'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=1200&q=85',
-            'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?auto=format&fit=crop&w=1200&q=85',
-            'https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=1200&q=85',
+            '/images/products/concepts/celeste-diamond-halo-ring/celeste-diamond-halo-ring-01.jpg',
+            '/images/products/concepts/aurora-pearl-drop-earrings/aurora-pearl-drop-earrings-01.jpg',
+            '/images/products/concepts/elan-tennis-bracelet/elan-tennis-bracelet-01.jpg',
+            '/images/products/concepts/nocturne-sapphire-pendant/nocturne-sapphire-pendant-01.jpg',
+            '/images/products/concepts/solstice-rose-gold-chain/solstice-rose-gold-chain-01.jpg',
+            '/images/products/concepts/eternal-pair-wedding-bands/eternal-pair-wedding-bands-01.jpg',
+            '/images/products/concepts/moonlit-clover-bracelet/moonlit-clover-bracelet-01.jpg',
         ];
 
         return [

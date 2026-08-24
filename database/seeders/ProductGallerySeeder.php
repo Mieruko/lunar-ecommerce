@@ -6,7 +6,6 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
 
 class ProductGallerySeeder extends Seeder
 {
@@ -18,19 +17,24 @@ class ProductGallerySeeder extends Seeder
 
         Product::query()->where('status', 'active')->orderBy('id')->each(
             function (Product $product) use ($exactGalleries): void {
-                $primaryPath = $product->images()->where('is_primary', true)->value('path')
-                    ?? $product->images()->orderBy('sort_order')->value('path');
                 $gallery = $exactGalleries[$product->slug] ?? null;
 
-                if ($gallery === null && $primaryPath === null) {
+                // Unknown products keep their existing images. Fabricating four
+                // crops from one photo makes a misleading gallery.
+                if ($gallery === null) {
                     return;
                 }
 
-                $images = $gallery['images'] ?? $this->coherentConceptGallery($primaryPath);
-                $sourceUrl = $gallery['source_url'] ?? $product->source_url;
+                $images = $gallery['images'];
+                $productSourceUrl = $gallery['source_url'] ?? $product->source_url;
+                $imageSourceUrl = array_key_exists('image_source_url', $gallery)
+                    ? $gallery['image_source_url']
+                    : $productSourceUrl;
+                $storageDisk = $gallery['storage_disk'] ?? 'external';
+                $isLicensed = $gallery['is_licensed'] ?? false;
 
-                if ($gallery !== null) {
-                    $product->forceFill(['source_url' => $sourceUrl])->save();
+                if (array_key_exists('source_url', $gallery)) {
+                    $product->forceFill(['source_url' => $productSourceUrl])->save();
                 }
 
                 $product->images()->update(['is_primary' => false]);
@@ -42,12 +46,12 @@ class ProductGallerySeeder extends Seeder
                         ['product_id' => $product->id, 'sort_order' => $sortOrder],
                         [
                             'product_variant_id' => null,
-                            'storage_disk' => 'external',
+                            'storage_disk' => $storageDisk,
                             'path' => $path,
                             'alt_text' => $product->name.' — ảnh '.($sortOrder),
                             'is_primary' => $sortOrder === 1,
-                            'is_licensed' => false,
-                            'source_url' => $sourceUrl,
+                            'is_licensed' => $isLicensed,
+                            'source_url' => $imageSourceUrl,
                         ],
                     );
                 }
@@ -61,7 +65,13 @@ class ProductGallerySeeder extends Seeder
      * Product photos are deliberately keyed by the exact store slug/model. Do not
      * replace this with a shared watch/jewelry pool: that can mix different models.
      *
-     * @return array<string, array{source_url: string, images: list<string>}>
+     * @return array<string, array{
+     *     images: list<string>,
+     *     source_url?: string,
+     *     storage_disk?: string,
+     *     is_licensed?: bool,
+     *     image_source_url?: string|null
+     * }>
      */
     private function exactGalleries(): array
     {
@@ -102,6 +112,13 @@ class ProductGallerySeeder extends Seeder
                     'https://cdn.shopify.com/s/files/1/0797/3637/3533/files/1-Reshoot_MiniHoop_YG_Stack_016.jpg?v=1758043892&width=1200',
                 ],
             ],
+            'celeste-diamond-halo-ring' => $this->conceptGallery('celeste-diamond-halo-ring'),
+            'aurora-pearl-drop-earrings' => $this->conceptGallery('aurora-pearl-drop-earrings'),
+            'elan-tennis-bracelet' => $this->conceptGallery('elan-tennis-bracelet'),
+            'nocturne-sapphire-pendant' => $this->conceptGallery('nocturne-sapphire-pendant'),
+            'solstice-rose-gold-chain' => $this->conceptGallery('solstice-rose-gold-chain'),
+            'eternal-pair-wedding-bands' => $this->conceptGallery('eternal-pair-wedding-bands'),
+            'moonlit-clover-bracelet' => $this->conceptGallery('moonlit-clover-bracelet'),
             'tissot-prx-powermatic-80-40mm' => [
                 'source_url' => 'https://www.tissotwatches.com/en-sg/T1374071104100.html',
                 'images' => [
@@ -168,20 +185,24 @@ class ProductGallerySeeder extends Seeder
         ];
     }
 
-    /** @return list<string> */
-    private function coherentConceptGallery(string $primaryPath): array
+    /**
+     * @return array{
+     *     images: list<string>,
+     *     storage_disk: string,
+     *     is_licensed: bool,
+     *     image_source_url: null
+     * }
+     */
+    private function conceptGallery(string $slug): array
     {
-        if (! Str::contains($primaryPath, 'images.unsplash.com')) {
-            return array_fill(0, 4, $primaryPath);
-        }
-
-        $basePath = Str::before($primaryPath, '?');
-
         return [
-            $basePath.'?auto=format&fit=crop&w=1400&q=88',
-            $basePath.'?auto=format&fit=crop&w=1400&h=1400&crop=center&q=88',
-            $basePath.'?auto=format&fit=crop&w=1400&h=1400&crop=entropy&q=88',
-            $basePath.'?auto=format&fit=crop&w=1400&h=1400&crop=edges&q=88',
+            'storage_disk' => 'public',
+            'is_licensed' => true,
+            'image_source_url' => null,
+            'images' => array_map(
+                fn (int $index): string => sprintf('/images/products/concepts/%s/%s-%02d.jpg', $slug, $slug, $index),
+                range(1, 4),
+            ),
         ];
     }
 }

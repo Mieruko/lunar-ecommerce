@@ -58,6 +58,26 @@ class ProductGallerySeederTest extends TestCase
             'is_primary' => true,
         ]);
 
+        $moonlit = Product::create([
+            'category_id' => $category->id,
+            'name' => 'Moonlit Clover Bracelet',
+            'slug' => 'moonlit-clover-bracelet',
+            'product_type' => 'jewelry',
+            'status' => 'active',
+            'base_price_amount' => 11800000,
+            'currency' => 'VND',
+            'source_url' => 'https://trangsuc.doji.vn/',
+        ]);
+        foreach (range(1, 4) as $sortOrder) {
+            ProductImage::create([
+                'product_id' => $moonlit->id,
+                'storage_disk' => 'external',
+                'path' => 'https://images.unsplash.com/photo-same-jewelry?crop='.$sortOrder,
+                'sort_order' => $sortOrder,
+                'is_primary' => $sortOrder === 1,
+            ]);
+        }
+
         (new ProductGallerySeeder)->run();
 
         $prx->refresh();
@@ -70,13 +90,23 @@ class ProductGallerySeederTest extends TestCase
         $this->assertSame(1, (int) $prxImages->first()->is_primary);
 
         $conceptImages = $concept->images()->orderBy('sort_order')->get();
-        $this->assertCount(4, $conceptImages);
-        $this->assertTrue($conceptImages->every(
-            fn (ProductImage $image): bool => Str::startsWith($image->path, 'https://images.unsplash.com/photo-concept-model?')
-        ));
-        $this->assertFalse($conceptImages->contains(
-            fn (ProductImage $image): bool => Str::contains($image->path, 'photo-unrelated')
-        ));
+        $this->assertCount(1, $conceptImages);
+        $this->assertSame('https://images.unsplash.com/photo-concept-model?auto=format&w=800', $conceptImages->first()->path);
         $this->assertSame(1, $conceptImages->where('is_primary', true)->count());
+
+        $moonlitImages = $moonlit->images()->orderBy('sort_order')->get();
+        $this->assertCount(4, $moonlitImages);
+        $this->assertCount(4, $moonlitImages->pluck('path')->unique());
+        $this->assertTrue($moonlitImages->every(
+            fn (ProductImage $image): bool => Str::startsWith(
+                $image->path,
+                '/images/products/concepts/moonlit-clover-bracelet/moonlit-clover-bracelet-'
+            )
+        ));
+        $this->assertTrue($moonlitImages->every(fn (ProductImage $image): bool => $image->storage_disk === 'public'));
+        $this->assertTrue($moonlitImages->every(fn (ProductImage $image): bool => (bool) $image->is_licensed));
+        $this->assertTrue($moonlitImages->every(fn (ProductImage $image): bool => $image->source_url === null));
+        $this->assertSame(1, $moonlitImages->where('is_primary', true)->count());
+        $moonlitImages->each(fn (ProductImage $image) => $this->assertFileExists(public_path(ltrim($image->path, '/'))));
     }
 }
