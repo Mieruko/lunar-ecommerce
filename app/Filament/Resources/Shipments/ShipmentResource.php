@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Shipments;
 
 use App\Filament\Resources\Concerns\AdminResource;
 use App\Filament\Resources\Shipments\Pages\ManageShipments;
+use App\Models\Order;
 use App\Models\Shipment;
 use App\Services\ShipmentService;
 use BackedEnum;
@@ -30,6 +31,10 @@ class ShipmentResource extends AdminResource
 
     protected static ?string $navigationLabel = 'Vận đơn';
 
+    protected static ?string $modelLabel = 'vận đơn';
+
+    protected static ?string $pluralModelLabel = 'vận đơn';
+
     protected static string|\UnitEnum|null $navigationGroup = 'Bán hàng';
 
     protected static ?int $navigationSort = 20;
@@ -39,10 +44,21 @@ class ShipmentResource extends AdminResource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Select::make('order_id')->relationship('order', 'order_number')->searchable()->preload()->required()->disabledOn('edit'),
+            Select::make('order_id')
+                ->label('Đơn hàng đã chuẩn bị')
+                ->relationship(
+                    name: 'order',
+                    titleAttribute: 'order_number',
+                    modifyQueryUsing: fn (Builder $query): Builder => $query->readyForShipment(),
+                )
+                ->getOptionLabelFromRecordUsing(fn (Order $record): string => $record->order_number.' — '.$record->customer_name)
+                ->searchable(['order_number', 'customer_name', 'customer_phone'])
+                ->preload()
+                ->required()
+                ->disabledOn('edit'),
             TextInput::make('carrier')->label('Đơn vị vận chuyển')->maxLength(255),
             TextInput::make('tracking_number')->label('Mã vận đơn')->maxLength(255),
-            Select::make('status')->label('Trạng thái')->options(self::STATUSES)->required()->default('pending')->disabledOn('edit'),
+            Select::make('status')->label('Trạng thái')->options(self::STATUSES)->required()->default('packed')->disabledOn('edit'),
         ])->columns(2);
     }
 
@@ -55,7 +71,7 @@ class ShipmentResource extends AdminResource
                 TextColumn::make('order.customer_phone')->label('Điện thoại')->searchable()->copyable(),
                 TextColumn::make('carrier')->label('Đơn vị')->placeholder('Chưa chọn'),
                 TextColumn::make('tracking_number')->label('Mã vận đơn')->searchable()->copyable()->placeholder('Chưa có'),
-                TextColumn::make('status')->label('Trạng thái')->badge()->formatStateUsing(fn ($state) => self::STATUSES[$state]),
+                TextColumn::make('status')->label('Trạng thái')->badge()->formatStateUsing(fn ($state) => self::STATUSES[$state] ?? $state),
                 TextColumn::make('order.payment_status')->label('Thanh toán')->badge(),
                 TextColumn::make('shipped_at')->label('Ngày gửi')->dateTime('d/m/Y H:i')->placeholder('—'),
             ])->filters([
@@ -83,14 +99,38 @@ class ShipmentResource extends AdminResource
             ->persistSearchInSession()
             ->persistFiltersInSession()
             ->defaultPaginationPageOption(25)
-            ->recordActions([EditAction::make()->label('Sửa'), self::statusAction('packed', 'Đóng gói'), self::statusAction('shipped', 'Đã gửi'), self::statusAction('delivered', 'Đã giao'), self::statusAction('returned', 'Hoàn hàng')]);
+            ->recordActions([
+                EditAction::make()
+                    ->label('Sửa thông tin')
+                    ->visible(fn (Shipment $record): bool => in_array($record->status, ['pending', 'packed'], true)),
+                self::statusAction('packed', 'Đã đóng gói', 'info'),
+                self::statusAction('shipped', 'Bàn giao vận chuyển', 'primary'),
+                self::statusAction('delivered', 'Đã giao', 'success'),
+                self::statusAction('failed', 'Giao thất bại', 'danger'),
+                self::statusAction('returned', 'Hoàn hàng', 'warning'),
+            ])
+            ->emptyStateHeading('Chưa có vận đơn')
+            ->emptyStateDescription('Đơn đã chuẩn bị nhưng chưa có vận đơn sẽ xuất hiện ở hàng đợi phía trên.');
     }
 
-    private static function statusAction(string $status, string $label): Action
+    private static function statusAction(string $status, string $label, string $color): Action
     {
-        return Action::make('set_'.$status)->label($label)->requiresConfirmation()
-            ->visible(fn (Shipment $record) => $record->status !== $status && ! in_array($record->order?->status, ['cancelled', 'returned'], true))
+        return Action::make('set_'.$status)->label($label)->color($color)->requiresConfirmation()
+            ->visible(fn (Shipment $record): bool => in_array($status, app(ShipmentService::class)->nextStatuses($record), true)
+                && ! in_array($record->order?->status, ['cancelled', 'returned'], true))
             ->action(fn (Shipment $record) => app(ShipmentService::class)->updateStatus($record, $status));
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        $count = Order::query()->readyForShipment()->count();
+
+        return $count > 0 ? (string) $count : null;
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return 'warning';
     }
 
     public static function getPages(): array

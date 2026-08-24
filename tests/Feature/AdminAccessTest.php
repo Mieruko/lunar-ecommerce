@@ -2,10 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\AdminActivityLog;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
-use App\Models\AdminActivityLog;
 use App\Services\AdminActivityLogger;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -41,6 +41,10 @@ class AdminAccessTest extends TestCase
                 throw $response->exception;
             }
             $this->assertSame(200, $response->getStatusCode(), "Admin route failed: {$url}");
+            if ($url === '/admin/shipments') {
+                $response->assertSee('Đơn hàng chờ tạo vận đơn');
+                $response->assertSee('Không có đơn chờ tạo vận đơn');
+            }
         }
     }
 

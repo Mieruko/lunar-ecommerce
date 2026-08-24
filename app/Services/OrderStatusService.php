@@ -6,7 +6,6 @@ use App\Models\Order;
 use App\Models\OrderStatusHistory;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class OrderStatusService
@@ -80,18 +79,6 @@ class OrderStatusService
                     ->update(['status' => 'cancelled', 'updated_at' => now()]);
             }
 
-            if ($targetStatus === 'preparing') {
-                $lockedOrder->shipments()->firstOrCreate([], [
-                    'carrier' => 'LUNAR Fulfillment',
-                    'tracking_number' => sprintf(
-                        'LJ-%s-%06d-%s',
-                        now()->format('ymd'),
-                        $lockedOrder->id,
-                        Str::upper(Str::random(4)),
-                    ),
-                    'status' => 'pending',
-                ]);
-            }
             OrderStatusHistory::create([
                 'order_id' => $lockedOrder->id,
                 'status' => $targetStatus,

@@ -11,20 +11,28 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class ActivityLogResource extends AdminResource
 {
     protected static ?string $model = AdminActivityLog::class;
+
     protected static string $viewPermission = 'staff.manage';
+
     protected static ?string $managePermission = null;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentCheck;
+
     protected static ?string $navigationLabel = 'Nhật ký quản trị';
+
     protected static string|\UnitEnum|null $navigationGroup = 'Hệ thống';
+
     protected static ?int $navigationSort = 30;
 
     private const ACTION_LABELS = [
         'payment.mark_paid' => 'Xác nhận đã thanh toán',
         'payment.refund_recorded' => 'Ghi nhận hoàn tiền',
+        'shipment.created' => 'Tạo vận đơn',
         'shipment.status_changed' => 'Đổi trạng thái vận đơn',
         'return.status_changed' => 'Đổi trạng thái đổi trả',
     ];
@@ -64,7 +72,9 @@ class ActivityLogResource extends AdminResource
                 TextColumn::make('subject_type')
                     ->label('Đối tượng')
                     ->formatStateUsing(function (?string $state): string {
-                        if (! $state) return '—';
+                        if (! $state) {
+                            return '—';
+                        }
                         $class = class_basename($state);
 
                         return self::SUBJECT_LABELS[$class] ?? $class;
@@ -78,8 +88,23 @@ class ActivityLogResource extends AdminResource
             ]);
     }
 
-    public static function canCreate(): bool { return false; }
-    public static function canEdit(\Illuminate\Database\Eloquent\Model $record): bool { return false; }
-    public static function canDelete(\Illuminate\Database\Eloquent\Model $record): bool { return false; }
-    public static function getPages(): array { return ['index' => ManageActivityLogs::route('/')]; }
+    public static function canCreate(): bool
+    {
+        return false;
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return false;
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return false;
+    }
+
+    public static function getPages(): array
+    {
+        return ['index' => ManageActivityLogs::route('/')];
+    }
 }

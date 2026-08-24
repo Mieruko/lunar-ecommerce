@@ -9,6 +9,7 @@ use App\Models\OrderItem;
 use App\Models\ProductVariant;
 use App\Models\StockReservation;
 use App\Services\OrderStatusService;
+use App\Services\ShipmentService;
 use App\Services\StockService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
@@ -66,20 +67,53 @@ class OrderCancellationStockTest extends TestCase
         app(OrderStatusService::class)->transition($order, 'cancelled');
     }
 
-    public function test_preparing_an_order_creates_a_trackable_shipment(): void
+    public function test_preparing_an_order_enters_the_shipment_queue_until_a_real_shipment_is_created(): void
     {
         $this->seed();
         [$order] = $this->makeOrderWithReservation('active');
 
         app(OrderStatusService::class)->transition($order, 'preparing');
 
-        $shipment = $order->shipments()->firstOrFail();
-        $this->assertSame('LUNAR Fulfillment', $shipment->carrier);
-        $this->assertMatchesRegularExpression('/^LJ-\d{6}-\d{6}-[A-Z0-9]{4}$/', $shipment->tracking_number);
-        $this->assertSame('pending', $shipment->status);
+        $this->assertFalse($order->shipments()->exists());
+        $this->assertTrue(Order::query()->readyForShipment()->whereKey($order)->exists());
+
+        $shipment = app(ShipmentService::class)->createForOrder($order->fresh(), 'GHN', 'GHN-TEST-0001');
+
+        $this->assertSame('GHN', $shipment->carrier);
+        $this->assertSame('GHN-TEST-0001', $shipment->tracking_number);
+        $this->assertSame('packed', $shipment->status);
+        $this->assertFalse(Order::query()->readyForShipment()->whereKey($order)->exists());
+
+        try {
+            app(ShipmentService::class)->createForOrder($order->fresh(), 'GHN', 'GHN-TEST-0002');
+            $this->fail('Không được tạo vận đơn thứ hai cho cùng đơn hàng.');
+        } catch (ValidationException) {
+            $this->assertSame(1, $order->shipments()->count());
+        }
 
         app(OrderStatusService::class)->transition($order->fresh(), 'cancelled', null, 'Khách đổi ý trước khi giao.');
         $this->assertSame('cancelled', $shipment->fresh()->status);
+    }
+
+    public function test_shipment_statuses_follow_the_fulfillment_sequence(): void
+    {
+        $this->seed();
+        [$order] = $this->makeOrderWithReservation('active');
+        app(OrderStatusService::class)->transition($order, 'preparing');
+        $shipment = app(ShipmentService::class)->createForOrder($order->fresh(), 'Viettel Post', 'VTP-TEST-0001');
+
+        try {
+            app(ShipmentService::class)->updateStatus($shipment, 'delivered');
+            $this->fail('Không được bỏ qua bước bàn giao vận chuyển.');
+        } catch (ValidationException) {
+            $this->assertSame('packed', $shipment->fresh()->status);
+        }
+
+        app(ShipmentService::class)->updateStatus($shipment->fresh(), 'shipped');
+
+        $this->assertSame('shipped', $shipment->fresh()->status);
+        $this->assertSame('shipping', $order->fresh()->status);
+        $this->assertNotNull($shipment->fresh()->shipped_at);
     }
 
     private function makeOrderWithReservation(string $reservationStatus): array

@@ -2,13 +2,78 @@
 
 namespace App\Services;
 
+use App\Models\Order;
 use App\Models\Shipment;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class ShipmentService
 {
+    private const TRANSITIONS = [
+        'pending' => ['packed'],
+        'packed' => ['shipped'],
+        'shipped' => ['delivered', 'failed'],
+        'failed' => ['shipped', 'returned'],
+        'delivered' => [],
+        'returned' => [],
+        'cancelled' => [],
+    ];
+
     public function __construct(private OrderStatusService $orders, private AdminActivityLogger $activity) {}
+
+    public function createForOrder(Order $order, string $carrier, string $trackingNumber): Shipment
+    {
+        return DB::transaction(function () use ($order, $carrier, $trackingNumber): Shipment {
+            $lockedOrder = Order::query()->lockForUpdate()->findOrFail($order->id);
+            $carrier = trim($carrier);
+            $trackingNumber = trim($trackingNumber);
+
+            if ($lockedOrder->status !== 'preparing') {
+                throw ValidationException::withMessages([
+                    'order_id' => 'Chỉ tạo vận đơn cho đơn đang ở trạng thái Chuẩn bị hàng.',
+                ]);
+            }
+
+            if ($lockedOrder->shipments()->exists()) {
+                throw ValidationException::withMessages([
+                    'order_id' => 'Đơn hàng này đã có vận đơn.',
+                ]);
+            }
+
+            if (blank($carrier) || blank($trackingNumber)) {
+                throw ValidationException::withMessages([
+                    'tracking_number' => 'Vui lòng nhập đơn vị vận chuyển và mã vận đơn thực tế.',
+                ]);
+            }
+
+            if (Shipment::query()->where('carrier', $carrier)->where('tracking_number', $trackingNumber)->exists()) {
+                throw ValidationException::withMessages([
+                    'tracking_number' => 'Mã vận đơn này đã được sử dụng cho cùng đơn vị vận chuyển.',
+                ]);
+            }
+
+            $shipment = $lockedOrder->shipments()->create([
+                'carrier' => $carrier,
+                'tracking_number' => $trackingNumber,
+                'status' => 'packed',
+            ]);
+
+            $this->activity->log('shipment.created', $shipment, null, $shipment->only([
+                'order_id',
+                'carrier',
+                'tracking_number',
+                'status',
+            ]));
+
+            return $shipment;
+        });
+    }
+
+    /** @return list<string> */
+    public function nextStatuses(Shipment $shipment): array
+    {
+        return self::TRANSITIONS[$shipment->status] ?? [];
+    }
 
     public function updateStatus(Shipment $shipment, string $status): Shipment
     {
@@ -17,6 +82,12 @@ class ShipmentService
             if (in_array($locked->order->status, ['cancelled', 'returned'], true)) {
                 throw ValidationException::withMessages([
                     'status' => 'Không thể cập nhật vận chuyển cho đơn đã hủy hoặc đã trả hàng.',
+                ]);
+            }
+
+            if (! in_array($status, self::TRANSITIONS[$locked->status] ?? [], true)) {
+                throw ValidationException::withMessages([
+                    'status' => "Không thể chuyển vận đơn từ {$locked->status} sang {$status}.",
                 ]);
             }
             if (in_array($status, ['shipped', 'delivered'], true) && (! $locked->carrier || ! $locked->tracking_number)) {
