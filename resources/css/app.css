@@ -2506,3 +2506,213 @@ a.support-chat-product:hover {
     .support-chat-launcher { transition: none; }
     .support-chat-loading span { animation-duration: 1.6s; }
 }
+
+/* =========================================================================
+   LUNAR FRONTEND REDESIGN 2026
+   Foundation: motion tokens, header choreography, unified pricing,
+   toast system, reveal system, loading states.
+   Progressive enhancement: everything below degrades gracefully without JS
+   and is disabled under prefers-reduced-motion.
+   ========================================================================= */
+
+:root {
+    /* Motion timing scale */
+    --dur-micro: 200ms;   /* hovers, presses, toggles */
+    --dur-ui: 320ms;      /* panels, toasts, menus */
+    --dur-reveal: 620ms;  /* scroll reveals */
+    --dur-hero: 950ms;    /* hero entrances */
+    --ease-out: cubic-bezier(.22, .61, .2, 1);
+    --ease-lux: cubic-bezier(.16, .84, .3, 1);
+    --ease-spring: cubic-bezier(.34, 1.3, .5, 1);
+}
+
+/* ---------- Header choreography ---------- */
+.site-header {
+    position: sticky;
+    top: 0;
+    transition: background var(--dur-ui) var(--ease-out), box-shadow var(--dur-ui) var(--ease-out);
+}
+.site-header .nav { transition: min-height var(--dur-ui) var(--ease-out); }
+.site-header.is-condensed { background: rgba(251, 250, 247, .86); box-shadow: 0 12px 34px rgba(10, 12, 17, .07); }
+.site-header.is-condensed .nav { min-height: 64px; }
+.nav-links > a { position: relative; }
+.nav-links > a::after {
+    content: '';
+    position: absolute;
+    left: 0; right: auto; bottom: -4px;
+    width: 100%; height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform var(--dur-micro) var(--ease-out);
+}
+.nav-links > a:hover::after, .nav-links > a.active::after { transform: scaleX(1); }
+.nav-icon { transition: opacity var(--dur-micro) var(--ease-out), transform var(--dur-micro) var(--ease-out); }
+.nav-icon:hover { opacity: .74; }
+.counter { transition: transform var(--dur-micro) var(--ease-spring); }
+.counter.is-bumped { animation: lunar-badge-bump .5s var(--ease-spring); }
+@keyframes lunar-badge-bump {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.35); }
+    100% { transform: scale(1); }
+}
+
+/* ---------- Unified price block (real backend prices only) ---------- */
+.price-block { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+.price-current { font-weight: 700; }
+.price-old { color: #a09d95; font-size: .82em; text-decoration-thickness: 1px; text-decoration-color: rgba(16,17,22,.4); }
+.price-old .money { font-weight: 400; }
+.price-off {
+    padding: 2px 6px;
+    border: 1px solid rgba(185, 154, 104, .5);
+    color: #8e734b;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .07em;
+    line-height: 1.3;
+}
+.money.is-updated .money-value, [data-checkout-total].is-updated .money-value, .is-updated > .money .money-value { animation: lunar-price-pulse .6s var(--ease-out); }
+[data-shipping-fee].is-updated, [data-checkout-total].is-updated { animation: lunar-price-pulse .6s var(--ease-out); }
+@keyframes lunar-price-pulse {
+    0% { opacity: .2; transform: translateY(4px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- Toast system ---------- */
+.toast-stack {
+    position: fixed;
+    z-index: 260;
+    left: 50%;
+    bottom: 26px;
+    transform: translateX(-50%);
+    display: grid;
+    gap: 10px;
+    width: min(430px, calc(100vw - 32px));
+    pointer-events: none;
+}
+.toast {
+    pointer-events: auto;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 1px solid var(--line-dark);
+    background: rgba(11, 13, 18, .96);
+    color: #f4f2ec;
+    font-size: 12.5px;
+    line-height: 1.55;
+    box-shadow: 0 18px 46px rgba(5, 7, 10, .35);
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity var(--dur-ui) var(--ease-out), transform var(--dur-ui) var(--ease-lux);
+}
+.toast.is-visible { opacity: 1; transform: translateY(0); }
+.toast.is-leaving { opacity: 0; transform: translateY(8px); }
+.toast-icon { flex: none; display: grid; place-items: center; width: 20px; height: 20px; margin-top: 1px; border-radius: 50%; font-size: 10px; }
+.toast.is-success .toast-icon { background: rgba(105, 155, 125, .28); color: #a9d3ba; }
+.toast.is-error .toast-icon { background: rgba(200, 96, 84, .26); color: #eba79c; }
+.toast.is-info .toast-icon { background: rgba(203, 179, 138, .22); color: var(--champagne-soft); }
+.toast-close { flex: none; margin-left: auto; border: 0; background: transparent; color: rgba(255,255,255,.55); font-size: 15px; line-height: 1; padding: 0 2px; }
+.toast-close:hover { color: #fff; }
+
+/* Flash messages: entrance + JS hands them to toasts when available */
+.notice, .error { animation: lunar-flash-in var(--dur-ui) var(--ease-out) both; }
+.flash-stack.is-toasted { display: none; }
+@keyframes lunar-flash-in {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- Scroll reveal system (JS adds .js-motion to <html>) ---------- */
+.js-motion [data-reveal] {
+    opacity: 0;
+    transform: translateY(26px);
+    transition: opacity var(--dur-reveal) var(--ease-out), transform var(--dur-reveal) var(--ease-lux);
+    transition-delay: var(--reveal-delay, 0ms);
+    will-change: opacity, transform;
+}
+.js-motion [data-reveal="fade"] { transform: none; }
+.js-motion [data-reveal="scale"] { transform: translateY(14px) scale(.975); }
+.js-motion [data-reveal].is-revealed { opacity: 1; transform: none; will-change: auto; }
+
+/* ---------- Hero entrance (gated by .js-motion) ---------- */
+.js-motion .home-hero-copy > * { opacity: 0; transform: translateY(24px); animation: lunar-hero-rise var(--dur-hero) var(--ease-lux) forwards; }
+.js-motion .home-hero-copy .eyebrow { animation-delay: 80ms; }
+.js-motion .home-hero-copy .display { animation-delay: 200ms; }
+.js-motion .home-hero-copy p { animation-delay: 380ms; }
+.js-motion .home-hero-copy .hero-actions { animation-delay: 540ms; }
+.js-motion .home-hero-copy .hero-meta { animation-delay: 700ms; }
+.js-motion .home-hero-art { opacity: 0; animation: lunar-hero-art var(--dur-hero) var(--ease-out) 260ms forwards; }
+@keyframes lunar-hero-rise {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes lunar-hero-art {
+    from { opacity: 0; transform: scale(1.045); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* ---------- Buttons: press + loading state ---------- */
+.button, .button-outline, .button-light { transition: transform var(--dur-micro) var(--ease-out), opacity var(--dur-micro) var(--ease-out), background var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out); }
+.button:active, .button-outline:active { transform: translateY(1px); }
+.is-loading-button { position: relative; pointer-events: none; opacity: .78; }
+.is-loading-button > * { visibility: hidden; }
+.is-loading-button::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 16px; height: 16px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: lunar-spin .8s linear infinite;
+}
+@keyframes lunar-spin { to { transform: rotate(360deg); } }
+
+/* ---------- Skeleton / catalog loading ---------- */
+.is-grid-loading { position: relative; pointer-events: none; }
+.is-grid-loading > * { opacity: .38; transition: opacity var(--dur-ui) var(--ease-out); }
+.is-grid-loading::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.55) 50%, transparent 70%);
+    background-size: 220% 100%;
+    animation: lunar-shimmer 1.15s linear infinite;
+    pointer-events: none;
+}
+@keyframes lunar-shimmer { from { background-position: 160% 0; } to { background-position: -60% 0; } }
+.shipping-zone-quote { transition: opacity var(--dur-ui) var(--ease-out); }
+.shipping-zone-quote.is-loading { opacity: .55; }
+.shipping-zone-quote.is-loading strong { animation: lunar-quote-blink 1s ease-in-out infinite; }
+@keyframes lunar-quote-blink { 50% { opacity: .35; } }
+
+/* ---------- Voucher / coupon states ---------- */
+.coupon-applied { animation: lunar-coupon-in var(--dur-ui) var(--ease-lux) both; border: 1px solid rgba(73, 108, 85, .4); background: rgba(240, 246, 241, .8); padding: 14px 16px; align-items: center; justify-content: space-between; }
+.coupon-applied b { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; letter-spacing: .04em; }
+.coupon-applied b::before { content: '✓'; display: grid; place-items: center; width: 17px; height: 17px; border-radius: 50%; background: var(--success); color: #fff; font-size: 9px; }
+.coupon-applied small { display: block; margin-top: 4px; color: var(--success); font-size: 10.5px; }
+.coupon-saving { display: block; margin-top: 2px; color: var(--success); font-size: 11px; font-weight: 700; }
+@keyframes lunar-coupon-in {
+    from { opacity: 0; transform: translateY(8px) scale(.985); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.coupon-error-hint { margin: -10px 0 16px; color: var(--danger); font-size: 11px; animation: lunar-flash-in var(--dur-ui) var(--ease-out) both; }
+
+/* ---------- Cart line removal ---------- */
+.lunar-cart-item { transition: opacity var(--dur-ui) var(--ease-out), transform var(--dur-ui) var(--ease-out); }
+.lunar-cart-item.is-removing { opacity: .28; transform: translateX(-8px); pointer-events: none; }
+
+/* ---------- Reduced motion: kill everything above ---------- */
+@media (prefers-reduced-motion: reduce) {
+    .js-motion [data-reveal] { opacity: 1 !important; transform: none !important; transition: none !important; }
+    .js-motion .home-hero-copy > *, .js-motion .home-hero-art { opacity: 1 !important; transform: none !important; animation: none !important; }
+    .toast { transition-duration: .01ms; }
+    .is-grid-loading::after, .counter.is-bumped { animation: none !important; }
+    .site-header, .site-header .nav { transition: none; }
+}
+
+/* Order summary component accents */
+.summary-discount { color: var(--success) !important; }
+.summary-row-discount span { color: var(--success); }
