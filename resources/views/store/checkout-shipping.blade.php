@@ -28,6 +28,7 @@
             data-provinces-url="{{ route('checkout.locations.provinces') }}"
             data-wards-url="{{ route('checkout.locations.wards') }}"
             data-quote-url="{{ route('checkout.shipping.quote') }}"
+            data-loading-form
         >
             @csrf
 
@@ -211,35 +212,7 @@
                 @endforeach
             </div>
 
-            <div class="summary-table checkout-totals">
-                <div class="summary-row">
-                    <span>Tạm tính</span>
-                    <b><x-money :amount="$totals['subtotal']" /></b>
-                </div>
-
-                <div class="summary-row">
-                    <span>Vận chuyển</span>
-
-                    <b data-shipping-fee>
-                        @if($shippingQuote)
-                            @if($totals['shipping'])
-                                <x-money :amount="$totals['shipping']" />
-                            @else
-                                Miễn phí
-                            @endif
-                        @else
-                            Chọn địa chỉ
-                        @endif
-                    </b>
-                </div>
-
-                <div class="summary-row total">
-                    <span>Tổng cộng</span>
-                    <span data-checkout-total>
-                        <x-money :amount="$totals['total']" />
-                    </span>
-                </div>
-            </div>
+            <x-order-summary class="checkout-totals" :totals="$totals" :shipping-pending="! $shippingQuote" />
 
             <div class="checkout-trust">
                 <span>01</span>

@@ -2788,3 +2788,44 @@ a.card-wishlist { position: absolute; z-index: 4; right: 12px; top: 12px; }
 /* Reveal wrappers inside product grids behave like the cards they hold */
 .product-grid > [data-reveal] { min-width: 0; }
 .product-grid > [data-reveal] > .product-card { height: 100%; }
+
+/* =========================================================================
+   Stage 4 — Checkout & payment polish
+   ========================================================================= */
+
+/* Payment option micro-interactions */
+.lunar-payment-option { transition: border-color var(--dur-micro) var(--ease-out), background var(--dur-micro) var(--ease-out), transform var(--dur-micro) var(--ease-out); }
+.lunar-payment-option:hover { border-color: rgba(16,17,22,.4); }
+.lunar-payment-option:has(input:checked) { border-color: var(--ink); background: rgba(255,255,255,.85); }
+.lunar-payment-option:has(input:focus-visible) { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* Checkout progress steps */
+.checkout-progress-item { transition: color var(--dur-micro) var(--ease-out); }
+.checkout-progress-item.complete b { background: var(--success); border-color: var(--success); color: #fff; }
+
+/* Payment transaction cards (real backend payment records only) */
+.payment-transactions { display: grid; gap: 12px; margin: 22px 0; }
+.payment-transaction-card { border: 1px solid var(--line); background: rgba(255,255,255,.6); padding: 16px 18px; }
+.payment-transaction-card.is-paid { border-color: rgba(73, 108, 85, .45); }
+.payment-transaction-card.is-failed, .payment-transaction-card.is-cancelled { border-color: rgba(169, 71, 61, .4); }
+.payment-transaction-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.payment-transaction-head b { font-size: 13px; letter-spacing: .02em; }
+.payment-state { padding: 3px 9px; border: 1px solid var(--line); font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.payment-transaction-card.is-paid .payment-state { border-color: rgba(73, 108, 85, .5); color: var(--success); }
+.payment-transaction-card.is-pending .payment-state, .payment-transaction-card.is-authorized .payment-state { border-color: rgba(185, 154, 104, .5); color: #8e734b; }
+.payment-transaction-card.is-failed .payment-state, .payment-transaction-card.is-cancelled .payment-state { border-color: rgba(169, 71, 61, .5); color: var(--danger); }
+.payment-transaction-meta { display: grid; gap: 7px; margin: 0; }
+.payment-transaction-meta > div { display: flex; justify-content: space-between; gap: 14px; font-size: 11.5px; }
+.payment-transaction-meta dt { color: var(--muted); font-weight: 400; }
+.payment-transaction-meta dd { margin: 0; font-weight: 700; text-align: right; overflow-wrap: anywhere; }
+.payment-transaction-meta code { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 10.5px; font-weight: 400; letter-spacing: .03em; background: rgba(16,17,22,.05); padding: 2px 6px; }
+
+/* Order rows hover motion */
+.lunar-order-row { transition: transform var(--dur-micro) var(--ease-out), background var(--dur-micro) var(--ease-out); }
+@media (hover: hover) { .lunar-order-row:hover { transform: translateX(4px); } }
+
+/* Benefit / dashboard coupon card hover */
+.benefit-card, .dashboard-coupon-list article { transition: transform var(--dur-ui) var(--ease-out); }
+@media (hover: hover) {
+    .benefit-card:not(.is-used):hover { transform: translateY(-3px); }
+}

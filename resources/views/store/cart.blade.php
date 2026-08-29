@@ -73,7 +73,7 @@
                                             <button type="submit" class="cart-text-action">Cập nhật</button>
                                         </form>
 
-                                        <form action="{{ route('cart.destroy', $item) }}" method="POST">
+                                        <form action="{{ route('cart.destroy', $item) }}" method="POST" data-remove-line>
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="cart-text-action danger-action">Xóa</button>
@@ -99,23 +99,25 @@
 
                     @if($coupon)
                         <div class="coupon lunar-coupon coupon-applied">
-                            <div><b>{{ $coupon['code'] }}</b><small>Đã áp dụng mã ưu đãi</small></div>
-                            <form action="{{ route('cart.coupon.remove') }}" method="POST">@csrf @method('DELETE')<button class="button-outline">Gỡ mã</button></form>
+                            <div>
+                                <b>{{ $coupon['code'] }}</b>
+                                <small>Đã áp dụng mã ưu đãi</small>
+                                @if($totals['discount'])
+                                    <span class="coupon-saving">Bạn tiết kiệm <x-money :amount="$totals['discount']" /></span>
+                                @endif
+                            </div>
+                            <form action="{{ route('cart.coupon.remove') }}" method="POST" data-loading-form>@csrf @method('DELETE')<button class="button-outline">Gỡ mã</button></form>
                         </div>
                     @else
-                        <form class="coupon lunar-coupon" action="{{ route('cart.coupon.apply') }}" method="POST">
+                        <form class="coupon lunar-coupon" action="{{ route('cart.coupon.apply') }}" method="POST" data-loading-form>
                             @csrf
-                            <input name="code" placeholder="Mã ưu đãi" maxlength="80" aria-label="Mã ưu đãi">
+                            <input name="code" value="{{ old('code') }}" placeholder="Mã ưu đãi" maxlength="80" aria-label="Mã ưu đãi">
                             <button class="button-outline">Áp dụng</button>
                         </form>
+                        @error('code')<p class="coupon-error-hint" role="alert">{{ $message }}</p>@enderror
                     @endif
 
-                    <div class="summary-table">
-                        <div class="summary-row"><span>Tạm tính</span><b><x-money :amount="$totals['subtotal']" /></b></div>
-                        @if($totals['discount'])<div class="summary-row"><span>Giảm giá{{ $coupon ? ' ('.$coupon['code'].')' : '' }}</span><b>− <x-money :amount="$totals['discount']" /></b></div>@endif
-                        <div class="summary-row"><span>Vận chuyển</span><b>@if($totals['shipping'])<x-money :amount="$totals['shipping']" />@else Miễn phí @endif</b></div>
-                        <div class="summary-row total"><span>Tổng cộng</span><span><x-money :amount="$totals['total']" /></span></div>
-                    </div>
+                    <x-order-summary :totals="$totals" :coupon="$coupon" />
 
                     <a class="button checkout-button" href="{{ route('checkout.shipping') }}">Tiến hành thanh toán <span>→</span></a>
                     <div class="summary-assurances">

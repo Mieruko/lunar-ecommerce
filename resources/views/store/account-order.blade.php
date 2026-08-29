@@ -57,6 +57,34 @@
                 @if($order->shipments->isNotEmpty())
                     <div class="shipment-block"><span class="eyebrow">Delivery</span>@foreach($order->shipments as $shipment)<div class="shipment-line"><span>{{ $shipment->carrier ?: 'Đơn vị vận chuyển' }}</span><b>{{ $shipment->tracking_number ?: 'Đang chuẩn bị' }}</b><small>{{ strtoupper($shipment->status) }}</small></div>@endforeach</div>
                 @endif
+                @if($order->payments->isNotEmpty())
+                    @php($paymentStateLabels = ['pending' => 'Đang xử lý', 'authorized' => 'Đã ủy quyền', 'paid' => 'Hoàn tất', 'failed' => 'Thất bại', 'cancelled' => 'Đã hủy', 'refunded' => 'Đã hoàn tiền'])
+                    @php($providerLabels = ['paypal' => 'PayPal', 'vnpay' => 'VNPAY', 'bank_transfer' => 'Chuyển khoản', 'cod' => 'Thanh toán khi nhận hàng'])
+                    <div class="payment-transactions">
+                        <span class="eyebrow">Payment</span>
+                        @foreach($order->payments as $payment)
+                            <div class="payment-transaction-card is-{{ $payment->status }}">
+                                <div class="payment-transaction-head">
+                                    <b>{{ $providerLabels[$payment->provider] ?? ucfirst(str_replace('_', ' ', $payment->provider)) }}</b>
+                                    <span class="payment-state">{{ $paymentStateLabels[$payment->status] ?? $payment->status }}</span>
+                                </div>
+                                <dl class="payment-transaction-meta">
+                                    @if($payment->transaction_id)
+                                        <div><dt>Transaction ID</dt><dd><code>{{ $payment->transaction_id }}</code></dd></div>
+                                    @endif
+                                    <div><dt>Số tiền</dt><dd><x-money :amount="$payment->amount" /></dd></div>
+                                    @if($payment->provider_amount && $payment->payment_currency !== 'VND')
+                                        <div><dt>Thanh toán</dt><dd>{{ number_format((float) $payment->provider_amount, 2) }} {{ $payment->payment_currency }}</dd></div>
+                                    @endif
+                                    @if($payment->paid_at)
+                                        <div><dt>Ngày thanh toán</dt><dd>{{ $payment->paid_at->format('d/m/Y H:i') }}</dd></div>
+                                    @endif
+                                </dl>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
                 <div class="order-money-breakdown">
                     <div><span>Tạm tính</span><b><x-money :amount="$order->subtotal_amount" /></b></div>
                     @if($order->discount_amount > 0)<div><span>Giảm giá</span><b>−<x-money :amount="$order->discount_amount" /></b></div>@endif

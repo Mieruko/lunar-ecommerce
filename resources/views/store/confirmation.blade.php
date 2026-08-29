@@ -11,12 +11,12 @@
 
 <section class="confirmation-page">
     <div class="confirmation-orbit" aria-hidden="true"><span></span><i>✦</i></div>
-    <div class="shell confirmation-shell">
-        <span class="eyebrow eyebrow-light">Order received</span>
-        <h1 class="display">CẢM ƠN<br><em>bạn.</em></h1>
-        <p class="confirmation-lead">Đơn hàng đã được tạo thành công. LUNAR JEWELS sẽ tiếp tục cập nhật hành trình của đơn qua thông tin liên hệ bạn đã cung cấp.</p>
+    <div class="shell confirmation-shell" data-reveal-group>
+        <span class="eyebrow eyebrow-light" data-reveal="fade">Order received</span>
+        <h1 class="display" data-reveal>CẢM ƠN<br><em>bạn.</em></h1>
+        <p class="confirmation-lead" data-reveal>Đơn hàng đã được tạo thành công. LUNAR JEWELS sẽ tiếp tục cập nhật hành trình của đơn qua thông tin liên hệ bạn đã cung cấp.</p>
 
-        <div class="confirmation-card">
+        <div class="confirmation-card" data-reveal="scale">
             <div class="confirmation-order-number"><span>Mã đơn hàng</span><b>{{ $order->order_number }}</b></div>
             <div class="confirmation-statuses">
                 <span class="status-pill {{ $order->payment_status }}">{{ $paymentLabels[$order->payment_status] ?? $order->payment_status }}</span>
@@ -26,7 +26,7 @@
         </div>
 
         @if($bankTransfer)
-            <section class="transfer-instructions" aria-labelledby="transfer-title">
+            <section class="transfer-instructions" aria-labelledby="transfer-title" data-reveal>
                 <div class="transfer-copy">
                     <span class="eyebrow eyebrow-light">Bank transfer</span>
                     <h2 id="transfer-title">Quét mã để chuyển khoản</h2>
@@ -42,7 +42,7 @@
             </section>
         @endif
 
-        <div class="confirmation-actions">
+        <div class="confirmation-actions" data-reveal="fade">
             @auth
                 <a class="button button-light" href="{{ route('account.orders.show', $order) }}">Xem tiến trình đơn <span>→</span></a>
             @else

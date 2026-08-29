@@ -20,7 +20,7 @@
 
 <section class="page checkout-page">
     <div class="shell checkout-layout lunar-checkout-layout">
-        <form class="checkout-form-panel" method="POST" action="{{ route('checkout.place') }}">
+        <form class="checkout-form-panel" method="POST" action="{{ route('checkout.place') }}" data-loading-form>
             @csrf
             <input type="hidden" name="shipping_method" value="standard">
 
@@ -179,35 +179,7 @@
                 @endforeach
             </div>
 
-            <div class="summary-table checkout-totals">
-                <div class="summary-row">
-                    <span>Tạm tính</span>
-                    <b><x-money :amount="$totals['subtotal']" /></b>
-                </div>
-
-                @if($totals['discount'])
-                    <div class="summary-row">
-                        <span>Giảm giá ({{ $coupon['code'] }})</span>
-                        <b>− <x-money :amount="$totals['discount']" /></b>
-                    </div>
-                @endif
-
-                <div class="summary-row">
-                    <span>Vận chuyển</span>
-                    <b>
-                        @if($totals['shipping'])
-                            <x-money :amount="$totals['shipping']" />
-                        @else
-                            Miễn phí
-                        @endif
-                    </b>
-                </div>
-
-                <div class="summary-row total">
-                    <span>Tổng cộng</span>
-                    <span><x-money :amount="$totals['total']" /></span>
-                </div>
-            </div>
+            <x-order-summary class="checkout-totals" :totals="$totals" :coupon="$coupon" />
 
             <div class="secure-note">
                 <span>✦</span>
