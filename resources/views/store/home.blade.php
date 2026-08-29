@@ -6,7 +6,7 @@
         <div class="home-hero-copy">
             <span class="eyebrow eyebrow-light">Lunar Collection · 2026</span>
             <h1 class="display">A QUIET<br><em>kind of</em><br>BRILLIANCE</h1>
-            <p>Vẻ đẹp không cần phô trương. Khám phá những thiết kế đồng hồ và trang sức được tuyển chọn dưới cảm hứng của ánh trăng, kim loại quý và những khoảnh khắc vượt thời gian.</p>
+            <p>Vẻ đẹp không cần phô trương. Từ chiếc đồng hồ moonphase trên cổ tay đến món trang sức giữ lấy ánh sáng — mỗi thiết kế đều được tuyển chọn dưới cảm hứng của ánh trăng và những khoảnh khắc vượt thời gian.</p>
             <div class="hero-actions">
                 <a class="button button-light" href="{{ route('watches') }}">Khám phá Watches</a>
                 <a class="text-link text-link-light" href="{{ route('jewelry') }}">Khám phá Jewelry <span>↗</span></a>
@@ -22,6 +22,36 @@
             <div class="moon-orbit moon-orbit-one"></div>
             <div class="moon-orbit moon-orbit-two"></div>
             <div class="moon-disc"></div>
+
+            <div class="hero-watch">
+                <span class="hero-watch-strap hero-watch-strap-top"></span>
+                <span class="hero-watch-strap hero-watch-strap-bottom"></span>
+                <span class="hero-watch-crown"></span>
+                <div class="hero-watch-case">
+                    <div class="hero-watch-dial">
+                        <span class="hero-watch-track"></span>
+                        <span class="hero-watch-index hero-index-12"></span>
+                        <span class="hero-watch-index hero-index-3"></span>
+                        <span class="hero-watch-index hero-index-9"></span>
+                        <span class="hero-watch-logo">LUNAR</span>
+                        <span class="hero-watch-sub">moonphase</span>
+                        <div class="hero-moonphase">
+                            <span class="hero-moonphase-star hero-moonphase-star-a"></span>
+                            <span class="hero-moonphase-star hero-moonphase-star-b"></span>
+                            <span class="hero-moonphase-moon"></span>
+                        </div>
+                        <span class="hero-watch-hand hero-watch-hand-hour"></span>
+                        <span class="hero-watch-hand hero-watch-hand-minute"></span>
+                        <span class="hero-watch-pivot"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-jewel">
+                <span class="hero-jewel-band"></span>
+                <span class="hero-jewel-gem"></span>
+            </div>
+
             <span class="hero-vertical-word">LUNAR</span>
             <span class="hero-edition">JEWELS · EDITION 01</span>
         </div>

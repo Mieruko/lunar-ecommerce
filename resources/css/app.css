@@ -2829,3 +2829,152 @@ a.card-wishlist { position: absolute; z-index: 4; right: 12px; top: 12px; }
 @media (hover: hover) {
     .benefit-card:not(.is-used):hover { transform: translateY(-3px); }
 }
+
+/* ========= Hero moon-dial composition (Idea 4 + Moon-dial) =========
+   Moon recedes into a soft background element; a moonphase watch becomes
+   the primary hero object with a small jewelry accent. Pure HTML/CSS layers. */
+.home-hero-art { background: radial-gradient(circle at 62% 30%, #23242b 0, #15171d 42%, #0b0d12 74%); }
+
+/* Softer, smaller, offset moon — supports the story, no longer dominates */
+.moon-disc {
+    left: 63%; top: 30%; width: min(21vw, 280px); opacity: .82;
+    background: radial-gradient(circle at 35% 28%, #f4ecdc, #cbb896 40%, #6f6553 72%, #37332c);
+    box-shadow: 0 0 120px rgba(229, 214, 180, .12);
+    filter: saturate(.9);
+}
+.moon-orbit { border-color: rgba(255, 255, 255, .1); }
+.moon-orbit-one { left: 63%; top: 30%; width: 56%; }
+.moon-orbit-two { left: 63%; top: 30%; width: 92%; }
+.moon-orbit-one::after { right: 12%; top: 18%; }
+
+/* --- Moonphase watch: primary foreground subject --- */
+.hero-watch {
+    position: absolute; z-index: 3; left: 43%; top: 55%;
+    width: min(23vw, 295px); aspect-ratio: 1;
+    transform: translate(-50%, -50%) rotate(-6deg);
+    filter: drop-shadow(0 36px 60px rgba(0, 0, 0, .55));
+}
+.hero-watch-strap {
+    position: absolute; left: 50%; width: 37%; height: 58%;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, #101319, #232833 48%, #101319);
+    border: 1px solid rgba(203, 179, 138, .15);
+}
+.hero-watch-strap-top { bottom: 87%; border-radius: 14px 14px 4px 4px; }
+.hero-watch-strap-bottom { top: 87%; border-radius: 4px 4px 14px 14px; }
+.hero-watch-strap::after { content: ''; position: absolute; inset: 8% 12%; border: 1px solid rgba(203, 179, 138, .12); border-radius: inherit; }
+.hero-watch-crown {
+    position: absolute; right: -3.2%; top: 50%; width: 6.6%; height: 5.2%;
+    transform: translateY(-50%); border-radius: 3px;
+    background: linear-gradient(180deg, #e7d5b2, #a98d5f);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .45);
+}
+.hero-watch-case {
+    position: absolute; inset: 0; border-radius: 50%; padding: 5.5%;
+    background: conic-gradient(from 210deg, #d9c396, #8e7a56 20%, #f0e2c4 38%, #9c8760 55%, #e6d4ae 72%, #86734f 88%, #d9c396);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .3), 0 18px 44px rgba(0, 0, 0, .5);
+}
+.hero-watch-dial {
+    position: relative; width: 100%; height: 100%; border-radius: 50%; overflow: hidden;
+    background: radial-gradient(circle at 38% 30%, #1d2740 0, #131b2e 46%, #0a0f1c 82%);
+    box-shadow: inset 0 0 0 1px rgba(203, 179, 138, .35), inset 0 14px 34px rgba(0, 0, 0, .55);
+}
+.hero-watch-track { position: absolute; inset: 6.5%; border-radius: 50%; border: 1px solid rgba(203, 179, 138, .22); }
+.hero-watch-index { position: absolute; background: linear-gradient(180deg, #efe0bd, #b99a68); box-shadow: 0 1px 2px rgba(0, 0, 0, .4); }
+.hero-index-12 { left: 50%; top: 8.5%; width: 2.4%; height: 8.5%; transform: translateX(-50%); }
+.hero-index-3 { right: 8.5%; top: 50%; width: 8.5%; height: 2.4%; transform: translateY(-50%); }
+.hero-index-9 { left: 8.5%; top: 50%; width: 8.5%; height: 2.4%; transform: translateY(-50%); }
+.hero-watch-logo {
+    position: absolute; left: 50%; top: 23%; transform: translateX(-50%);
+    color: rgba(240, 226, 196, .85); font-size: clamp(7px, .75vw, 10px);
+    font-weight: 700; letter-spacing: .34em; text-indent: .34em;
+}
+.hero-watch-sub {
+    position: absolute; left: 50%; top: 32.5%; transform: translateX(-50%);
+    color: rgba(255, 255, 255, .34); font-size: clamp(5px, .5vw, 7px);
+    letter-spacing: .28em; text-indent: .28em; text-transform: uppercase; white-space: nowrap;
+}
+/* Classic arched moonphase aperture at 6 o'clock */
+.hero-moonphase {
+    position: absolute; left: 50%; bottom: 11.5%; width: 41%; height: 22%;
+    transform: translateX(-50%); overflow: hidden;
+    border-radius: 999px 999px 8px 8px;
+    background: radial-gradient(circle at 50% 130%, #27334f 0, #111a2c 52%, #070c17 100%);
+    box-shadow: inset 0 0 0 1px rgba(203, 179, 138, .45);
+}
+.hero-moonphase-moon {
+    position: absolute; left: 56%; top: 16%; width: 46%; aspect-ratio: 1; border-radius: 50%;
+    background: radial-gradient(circle at 36% 30%, #fdf6e6, #d9c294 55%, #9c8760);
+    box-shadow: 0 0 14px rgba(233, 214, 176, .5);
+}
+.hero-moonphase-star { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: rgba(240, 226, 196, .85); }
+.hero-moonphase-star-a { left: 20%; top: 28%; }
+.hero-moonphase-star-b { left: 32%; top: 60%; box-shadow: -9px -7px 0 rgba(240, 226, 196, .5); }
+/* Dauphine hands, frozen at the classic 10:08 pose */
+.hero-watch-hand {
+    position: absolute; left: 50%; top: 50%; transform-origin: 50% 100%;
+    background: linear-gradient(180deg, #f4e7c8, #b99a68);
+    clip-path: polygon(50% 0, 100% 12%, 62% 100%, 38% 100%, 0 12%);
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .45));
+}
+.hero-watch-hand-hour { width: 5%; height: 25%; transform: translate(-50%, -100%) rotate(-55deg); }
+.hero-watch-hand-minute { width: 3.6%; height: 36%; transform: translate(-50%, -100%) rotate(48deg); background: linear-gradient(180deg, #fdfbf5, #cfc3a8); }
+.hero-watch-pivot {
+    position: absolute; left: 50%; top: 50%; width: 5.5%; aspect-ratio: 1;
+    transform: translate(-50%, -50%); border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #f7ecd3, #a98d5f);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, .35);
+}
+
+/* --- Jewelry accent: secondary cue, lower composition --- */
+.hero-jewel {
+    position: absolute; z-index: 2; left: 66%; bottom: 8%;
+    width: min(9vw, 116px); aspect-ratio: 1; transform: rotate(-14deg);
+    filter: drop-shadow(0 18px 30px rgba(0, 0, 0, .5));
+}
+.hero-jewel-band {
+    position: absolute; inset: 0; border-radius: 50%;
+    border: 10px solid #c6a877;
+    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .45), 0 0 0 1px rgba(0, 0, 0, .28);
+}
+.hero-jewel-gem {
+    position: absolute; left: 50%; top: -8%; width: 27%; aspect-ratio: 1;
+    transform: translateX(-50%) rotate(45deg);
+    background: linear-gradient(135deg, #fff, #d8cbae 45%, #fdfaf2 70%, #b7a988);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, .38);
+}
+
+/* Entrance choreography — transform/opacity only, follows hero timing */
+.js-motion .hero-watch { opacity: 0; animation: lunar-hero-watch var(--dur-hero) var(--ease-lux) 420ms forwards; }
+@keyframes lunar-hero-watch {
+    from { opacity: 0; transform: translate(-50%, -44%) rotate(-6deg); }
+    to { opacity: 1; transform: translate(-50%, -50%) rotate(-6deg); }
+}
+.js-motion .hero-jewel { opacity: 0; animation: lunar-hero-jewel var(--dur-hero) var(--ease-lux) 640ms forwards; }
+@keyframes lunar-hero-jewel {
+    from { opacity: 0; transform: translateY(24px) rotate(-14deg); }
+    to { opacity: 1; transform: translateY(0) rotate(-14deg); }
+}
+
+/* Responsive scaling of the composition */
+@media (max-width: 1023px) {
+    .hero-watch { left: 46%; width: min(37vw, 280px); }
+    .moon-disc { width: min(29vw, 245px); }
+    .hero-jewel { left: 68%; width: min(13vw, 96px); }
+}
+@media (max-width: 900px) {
+    .hero-watch { left: 52%; top: 52%; }
+    .moon-disc { left: 66%; top: 26%; }
+    .moon-orbit-one, .moon-orbit-two { left: 66%; top: 26%; }
+}
+@media (max-width: 600px) {
+    .hero-watch { width: 205px; left: 56%; top: 60%; }
+    .moon-disc { width: 168px; }
+    .hero-jewel { width: 74px; left: 66%; bottom: 6%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .js-motion .hero-watch, .js-motion .hero-jewel { opacity: 1 !important; animation: none !important; }
+    .js-motion .hero-watch { transform: translate(-50%, -50%) rotate(-6deg) !important; }
+    .js-motion .hero-jewel { transform: rotate(-14deg) !important; }
+}
