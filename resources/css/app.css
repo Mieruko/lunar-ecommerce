@@ -2716,3 +2716,75 @@ a.support-chat-product:hover {
 /* Order summary component accents */
 .summary-discount { color: var(--success) !important; }
 .summary-row-discount span { color: var(--success); }
+
+/* =========================================================================
+   Stage 3 — Shopping experience
+   ========================================================================= */
+
+/* ---------- Premium product card hover choreography ---------- */
+.product-card { transition: transform var(--dur-ui) var(--ease-out); }
+@media (hover: hover) and (pointer: fine) {
+    .product-card:hover { transform: translateY(-4px); }
+}
+.product-image-primary, .product-image-alt { width: 100%; height: 100%; object-fit: cover; }
+.product-image-alt {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transform: scale(1.05);
+    transition: opacity .45s var(--ease-out) 60ms, transform .8s var(--ease-lux) 60ms;
+    pointer-events: none;
+}
+@media (hover: hover) and (pointer: fine) {
+    .product-card:hover .has-alt-image .product-image-alt { opacity: 1; transform: scale(1.015); }
+    .product-card:hover .has-alt-image .product-image-primary { transform: scale(1.02); }
+}
+.product-badge-sale { background: var(--night); color: var(--champagne-soft); }
+.product-name { transition: opacity var(--dur-micro) var(--ease-out); }
+.product-card:hover .product-name { opacity: .72; }
+
+/* Wishlist affordance on the card */
+.card-wishlist-form { position: absolute; z-index: 4; right: 12px; top: 12px; margin: 0; }
+a.card-wishlist { position: absolute; z-index: 4; right: 12px; top: 12px; }
+.card-wishlist {
+    display: grid;
+    place-items: center;
+    width: 34px; height: 34px;
+    border: 1px solid rgba(16,17,22,.14);
+    border-radius: 50%;
+    background: rgba(251,250,247,.92);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1;
+    transition: opacity var(--dur-micro) var(--ease-out), transform var(--dur-micro) var(--ease-spring), background var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out);
+}
+.card-wishlist:hover { background: var(--night); color: var(--champagne-soft); transform: scale(1.08); }
+.card-wishlist:active { transform: scale(.94); }
+@media (hover: hover) and (pointer: fine) {
+    .card-wishlist-form .card-wishlist, a.card-wishlist { opacity: 0; transform: translateY(-4px); }
+    .product-card:hover .card-wishlist, .product-card:focus-within .card-wishlist { opacity: 1; transform: translateY(0); }
+}
+
+/* Card price block scale inside grid */
+.product-bottom .price-block { gap: 6px; }
+.product-bottom .price-old { font-size: .78em; }
+
+/* ---------- Product detail: gallery zoom ---------- */
+.main-image { overflow: hidden; }
+.main-image [data-main-image] { transition: opacity .28s var(--ease-out), transform .35s var(--ease-out); }
+.main-image [data-main-image].is-switching { opacity: .4; }
+.main-image.has-zoom { cursor: zoom-in; }
+.main-image.has-zoom.is-zooming [data-main-image] { transform: scale(1.7); }
+.main-image.has-zoom.is-zooming .image-meta, .main-image.has-zoom.is-zooming .gallery-nav { opacity: 0; pointer-events: none; }
+.image-meta, .gallery-nav { transition: opacity var(--dur-micro) var(--ease-out); }
+
+/* ---------- Section reveal helpers (used site-wide) ---------- */
+.home-value-grid > div, .home-value-grid > a { transition: background var(--dur-micro) var(--ease-out); }
+.service-item { transition: transform var(--dur-ui) var(--ease-out); }
+@media (hover: hover) { .service-item:hover { transform: translateY(-3px); } }
+.collection-panel .collection-art { transition: transform .9s var(--ease-lux); }
+@media (hover: hover) { .collection-panel:hover .collection-art { transform: scale(1.04); } }
+
+/* Reveal wrappers inside product grids behave like the cards they hold */
+.product-grid > [data-reveal] { min-width: 0; }
+.product-grid > [data-reveal] > .product-card { height: 100%; }

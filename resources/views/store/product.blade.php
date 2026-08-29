@@ -47,7 +47,7 @@
             </div>
             <h1 class="product-title">{{ $product->name }}</h1>
             <div class="product-price-row">
-                <div class="price product-price"><x-money :amount="$product->variants->first()?->price_amount ?? $product->base_price_amount" /></div>
+                <div class="price product-price"><x-price :amount="$product->variants->first()?->price_amount ?? $product->base_price_amount" :compare-at="$product->variants->first()?->compare_at_price_amount" /></div>
                 <span class="vat-note">VAT included</span>
             </div>
             <a class="summary-rating" href="#reviews" aria-label="Xem đánh giá sản phẩm">
@@ -71,7 +71,7 @@
 
             <hr class="divider">
 
-            <form action="{{ route('cart.store', $product) }}" method="POST" class="purchase-form">
+            <form action="{{ route('cart.store', $product) }}" method="POST" class="purchase-form" data-loading-form>
                 @csrf
                 <div class="variant-list">
                     <div class="variant-heading"><b>Chọn phiên bản</b><span>{{ $product->variants->count() }} options</span></div>
@@ -83,7 +83,7 @@
                                 <span class="radio-ui"></span>
                                 <span><b>{{ $variant->name ?? $variant->sku }}</b><small>{{ $variant->sku }}</small></span>
                             </span>
-                            <span class="variant-price"><x-money :amount="$variant->price_amount" /><small>{{ $stock > 0 ? ($stock <= 2 ? 'Sắp hết hàng' : 'Sẵn hàng') : 'Hết hàng' }}</small></span>
+                            <span class="variant-price"><x-price :amount="$variant->price_amount" :compare-at="$variant->compare_at_price_amount" /><small>{{ $stock > 0 ? ($stock <= 2 ? 'Sắp hết hàng' : 'Sẵn hàng') : 'Hết hàng' }}</small></span>
                         </label>
                     @endforeach
                 </div>
@@ -258,13 +258,13 @@
 
 @if($related->isNotEmpty())
 <section class="section shell related-section">
-    <div class="section-head luxury-head">
+    <div class="section-head luxury-head" data-reveal>
         <div><span class="eyebrow">Continue exploring</span><h2 class="display section-title">YOU MAY ALSO LIKE</h2></div>
         <a class="text-link" href="{{ $product->product_type === 'watch' ? route('watches') : route('jewelry') }}">View collection <span>↗</span></a>
     </div>
-    <div class="product-grid">
+    <div class="product-grid" data-reveal-group>
         @foreach ($related as $item)
-            <x-product-card :product="$item" />
+            <div data-reveal><x-product-card :product="$item" /></div>
         @endforeach
     </div>
 </section>

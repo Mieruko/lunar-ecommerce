@@ -27,7 +27,7 @@
     </div>
 
     <div class="shop-layout">
-        <form class="filter-panel" data-filter-panel method="GET" action="{{ url()->current() }}">
+        <form class="filter-panel" data-filter-panel data-catalog-form method="GET" action="{{ url()->current() }}">
             <div class="filter-top">
                 <div><span class="eyebrow">Refine</span><b>Bộ lọc</b></div>
                 <div class="filter-top-actions"><a href="{{ url()->current() }}">Đặt lại</a><button type="button" data-filter-close aria-label="Đóng bộ lọc">×</button></div>
@@ -102,7 +102,7 @@
 
                 <div class="toolbar-actions">
                     <button class="button-outline mobile-filters" type="button" data-filter-toggle>Filters</button>
-                    <form method="GET" action="{{ url()->current() }}">
+                    <form method="GET" action="{{ url()->current() }}" data-catalog-form>
                         @if(request('q'))<input type="hidden" name="q" value="{{ request('q') }}">@endif
                         @if(request('min_price'))<input type="hidden" name="min_price" value="{{ request('min_price') }}">@endif
                         @if(request('max_price'))<input type="hidden" name="max_price" value="{{ request('max_price') }}">@endif
@@ -112,7 +112,7 @@
                             @endforeach
                         @endforeach
                         <label class="sort-select">Sort by
-                            <select name="sort" onchange="this.form.submit()">
+                            <select name="sort" data-catalog-sort onchange="this.form.submit()">
                                 <option value="newest" @selected(request('sort','newest')==='newest')>Newest</option>
                                 <option value="price_asc" @selected(request('sort')==='price_asc')>Price: Low to High</option>
                                 <option value="price_desc" @selected(request('sort')==='price_desc')>Price: High to Low</option>
@@ -135,9 +135,9 @@
                 </div>
             @endif
 
-            <div class="product-grid catalog-grid">
+            <div class="product-grid catalog-grid" data-catalog-grid data-reveal-group>
                 @forelse($products as $product)
-                    <x-product-card :product="$product" />
+                    <div data-reveal><x-product-card :product="$product" /></div>
                 @empty
                     <div class="empty product-grid-empty">
                         <span class="empty-orbit"></span>

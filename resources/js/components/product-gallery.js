@@ -34,7 +34,7 @@ export default function initProductGallery() {
     gallery.querySelector('[data-gallery-prev]')?.addEventListener('click', () => selectImage(currentIndex - 1));
     gallery.querySelector('[data-gallery-next]')?.addEventListener('click', () => selectImage(currentIndex + 1));
 
-    const stage = image.closest('.gallery-main') || image.parentElement;
+    const stage = image.closest('.main-image') || image.parentElement;
     if (!stage) return;
 
     // Touch swipe (mobile).

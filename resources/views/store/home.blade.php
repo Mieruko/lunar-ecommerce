@@ -28,7 +28,7 @@
     </div>
 </section>
 
-<section class="home-value-bar" aria-label="Dịch vụ Lunar Jewels">
+<section class="home-value-bar" aria-label="Dịch vụ Lunar Jewels" data-reveal="fade">
     <div class="shell home-value-grid">
         <div><span>◇</span><p><b>Sản phẩm minh bạch</b><small>Thông tin chất liệu và nguồn gốc rõ ràng</small></p></div>
         <div><span>↗</span><p><b>Giao hàng có theo dõi</b><small>Cập nhật tiến trình trong My Lunar</small></p></div>
@@ -42,8 +42,8 @@
 </section>
 
 <section class="section shell intro-section">
-    <div class="intro-kicker">LUNAR / JEWELS</div>
-    <div class="intro-copy">
+    <div class="intro-kicker" data-reveal="fade">LUNAR / JEWELS</div>
+    <div class="intro-copy" data-reveal>
         <span class="eyebrow">The House</span>
         <h2 class="display section-title">OBJECTS OF TIME.<br>OBJECTS OF LIGHT.</h2>
         <p>Mỗi thiết kế được chọn vì tỷ lệ, chất liệu và cảm giác nó để lại — từ chuyển động chính xác trên cổ tay đến ánh phản chiếu tinh tế của một món trang sức.</p>
@@ -51,8 +51,8 @@
 </section>
 
 <section class="section shell">
-    <div class="collection-duo">
-        <a class="collection-panel collection-watch" href="{{ route('watches') }}">
+    <div class="collection-duo" data-reveal-group>
+        <a data-reveal="scale" class="collection-panel collection-watch" href="{{ route('watches') }}">
             <div class="collection-index">01</div>
             <div class="collection-art collection-art-watch">
                 <span class="watch-dial"></span>
@@ -67,7 +67,7 @@
             </div>
         </a>
 
-        <a class="collection-panel collection-jewel" href="{{ route('jewelry') }}">
+        <a data-reveal="scale" class="collection-panel collection-jewel" href="{{ route('jewelry') }}">
             <div class="collection-index">02</div>
             <div class="collection-art collection-art-jewel">
                 <span class="jewel-ring jewel-ring-one"></span>
@@ -85,7 +85,7 @@
 </section>
 
 <section class="section shell product-showcase">
-    <div class="section-head luxury-head">
+    <div class="section-head luxury-head" data-reveal>
         <div>
             <span class="eyebrow">Curated selection</span>
             <h2 class="display section-title">FEATURED PIECES</h2>
@@ -93,9 +93,9 @@
         <a class="text-link" href="{{ route('shop') }}">Xem tất cả <span>↗</span></a>
     </div>
 
-    <div class="product-grid">
+    <div class="product-grid" data-reveal-group>
         @forelse($featured as $product)
-            <x-product-card :product="$product" />
+            <div data-reveal><x-product-card :product="$product" /></div>
         @empty
             <div class="empty product-grid-empty"><h3>Chưa có sản phẩm nổi bật</h3><p>Hãy đánh dấu Featured cho sản phẩm trong trang quản trị.</p></div>
         @endforelse
@@ -103,12 +103,12 @@
 </section>
 
 <section class="editorial-band">
-    <div class="shell editorial-grid">
-        <div class="editorial-art" aria-hidden="true">
+    <div class="shell editorial-grid" data-reveal-group>
+        <div class="editorial-art" aria-hidden="true" data-reveal="scale">
             <div class="editorial-moon"></div>
             <span>JEWELS</span>
         </div>
-        <div class="editorial-copy">
+        <div class="editorial-copy" data-reveal>
             <span class="eyebrow eyebrow-light">New chapter</span>
             <h2 class="display">FOR THE MOMENTS<br>THAT BECOME <em>yours.</em></h2>
             <p>Một món quà, một cột mốc, hay đơn giản là lựa chọn dành cho chính bạn. Lunar Jewels tin rằng những vật phẩm ý nghĩa nhất luôn gắn với một câu chuyện riêng.</p>
@@ -118,7 +118,7 @@
 </section>
 
 <section class="section shell product-showcase latest-showcase">
-    <div class="section-head luxury-head">
+    <div class="section-head luxury-head" data-reveal>
         <div>
             <span class="eyebrow">Just arrived</span>
             <h2 class="display section-title">NEW IN</h2>
@@ -126,18 +126,18 @@
         <a class="text-link" href="{{ route('shop', ['sort' => 'newest']) }}">Khám phá mới nhất <span>↗</span></a>
     </div>
 
-    <div class="product-grid">
+    <div class="product-grid" data-reveal-group>
         @forelse($latest as $product)
-            <x-product-card :product="$product" />
+            <div data-reveal><x-product-card :product="$product" /></div>
         @empty
             <div class="empty product-grid-empty"><h3>Chưa có sản phẩm mới</h3></div>
         @endforelse
     </div>
 </section>
 
-<section class="section shell service-strip">
-    <div class="service-item"><span class="service-number">01</span><div><b>Authenticity assured</b><p>Nguồn gốc và thông tin sản phẩm minh bạch.</p></div></div>
-    <div class="service-item"><span class="service-number">02</span><div><b>Care after purchase</b><p>Bảo hành và hành trình đơn hàng rõ ràng.</p></div></div>
-    <div class="service-item"><span class="service-number">03</span><div><b>Considered delivery</b><p>Đóng gói cẩn thận và hỗ trợ theo dõi đơn.</p></div></div>
+<section class="section shell service-strip" data-reveal-group>
+    <div class="service-item" data-reveal><span class="service-number">01</span><div><b>Authenticity assured</b><p>Nguồn gốc và thông tin sản phẩm minh bạch.</p></div></div>
+    <div class="service-item" data-reveal><span class="service-number">02</span><div><b>Care after purchase</b><p>Bảo hành và hành trình đơn hàng rõ ràng.</p></div></div>
+    <div class="service-item" data-reveal><span class="service-number">03</span><div><b>Considered delivery</b><p>Đóng gói cẩn thận và hỗ trợ theo dõi đơn.</p></div></div>
 </section>
 @endsection
