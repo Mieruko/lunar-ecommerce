@@ -19,39 +19,11 @@
         </div>
 
         <div class="home-hero-art" aria-hidden="true">
-            <div class="moon-orbit moon-orbit-one"></div>
-            <div class="moon-orbit moon-orbit-two"></div>
-            <div class="moon-disc"></div>
-
-            <div class="hero-watch">
-                <span class="hero-watch-strap hero-watch-strap-top"></span>
-                <span class="hero-watch-strap hero-watch-strap-bottom"></span>
-                <span class="hero-watch-crown"></span>
-                <div class="hero-watch-case">
-                    <div class="hero-watch-dial">
-                        <span class="hero-watch-track"></span>
-                        <span class="hero-watch-index hero-index-12"></span>
-                        <span class="hero-watch-index hero-index-3"></span>
-                        <span class="hero-watch-index hero-index-9"></span>
-                        <span class="hero-watch-logo">LUNAR</span>
-                        <span class="hero-watch-sub">moonphase</span>
-                        <div class="hero-moonphase">
-                            <span class="hero-moonphase-star hero-moonphase-star-a"></span>
-                            <span class="hero-moonphase-star hero-moonphase-star-b"></span>
-                            <span class="hero-moonphase-moon"></span>
-                        </div>
-                        <span class="hero-watch-hand hero-watch-hand-hour"></span>
-                        <span class="hero-watch-hand hero-watch-hand-minute"></span>
-                        <span class="hero-watch-pivot"></span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="hero-jewel">
-                <span class="hero-jewel-band"></span>
-                <span class="hero-jewel-gem"></span>
-            </div>
-
+            <img class="hero-photo"
+                 src="{{ asset('images/hero-moon-dial.webp') }}"
+                 srcset="{{ asset('images/hero-moon-dial-sm.webp') }} 760w, {{ asset('images/hero-moon-dial.webp') }} 1400w"
+                 sizes="(max-width: 900px) 100vw, 48vw"
+                 alt="" fetchpriority="high" decoding="async">
             <span class="hero-vertical-word">LUNAR</span>
             <span class="hero-edition">JEWELS · EDITION 01</span>
         </div>
