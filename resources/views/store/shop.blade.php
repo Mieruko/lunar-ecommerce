@@ -1,19 +1,31 @@
-@extends('layouts.store', ['title' => ($type === 'watch' ? 'Watches' : ($type === 'jewelry' ? 'Jewelry' : 'Shop')).' | LUNAR JEWELS'])
+@extends('layouts.store', ['title' => ($type === 'watch' ? 'Watches' : ($type === 'jewelry' ? 'Jewelry' : (request('sort') === 'best_sellers' ? 'Best Sellers' : 'New In'))).' | LUNAR JEWELS'])
 
 @section('content')
-@php($label = $type === 'watch' ? 'WATCHES' : ($type === 'jewelry' ? 'JEWELRY' : 'THE COLLECTION'))
+@php($isBestSellers = $type === null && request('sort') === 'best_sellers')
+@php($isNewIn = $type === null && ! $isBestSellers)
+@php($label = $type === 'watch' ? 'WATCHES' : ($type === 'jewelry' ? 'JEWELRY' : ($isBestSellers ? 'BEST SELLERS' : 'NEW IN')))
 @php($query = request()->except(['page']))
-@php($heroCopy = $type === 'watch' ? 'Cỗ máy chính xác, tỷ lệ cân bằng và những thiết kế được tạo để đồng hành lâu dài.' : ($type === 'jewelry' ? 'Trang sức tuyển chọn với ánh kim tinh tế, đường nét thanh lịch và dấu ấn riêng.' : 'Khám phá tuyển tập đồng hồ và trang sức được chọn lọc từ thế giới của Lunar Jewels.'))
+@php($heroCopy = $type === 'watch' ? 'Cỗ máy chính xác, tỷ lệ cân bằng và những thiết kế được tạo để đồng hành lâu dài.' : ($type === 'jewelry' ? 'Trang sức tuyển chọn với ánh kim tinh tế, đường nét thanh lịch và dấu ấn riêng.' : ($isBestSellers ? 'Những thiết kế được yêu thích nhất, tuyển chọn từ dấu ấn thời gian và ánh sáng.' : 'Những thiết kế vừa xuất hiện, tuyển chọn để mở đầu cho câu chuyện phong cách mới.')))
+@php($heroVariant = $type === 'watch' ? 'watch' : ($type === 'jewelry' ? 'jewelry' : ($isBestSellers ? 'best-sellers' : 'new-in')))
+@php($heroWord = $type === 'watch' ? 'TIMEPIECES' : ($type === 'jewelry' ? 'JEWELRY' : ($isBestSellers ? 'SIGNATURES' : 'LATEST ARRIVALS')))
+@php($heroMeta = $type === 'watch' ? 'MECHANICAL / PRECISION' : ($type === 'jewelry' ? 'CRAFT / PRECIOUS' : ($isBestSellers ? 'MOST DESIRED' : 'NEW / 2026')))
+@php($heroImage = $type === 'watch' ? 'images/catalog/watches-mechanical.webp' : ($type === 'jewelry' ? 'images/catalog/jewelry-macro.webp' : ($isBestSellers ? 'images/catalog/best-sellers-crown.webp' : 'images/catalog/new-in-moonphase.webp')))
 
-<section class="catalog-hero {{ $type === 'jewelry' ? 'catalog-hero-jewelry' : '' }}">
+<section class="catalog-hero catalog-hero-{{ $heroVariant }}">
+    <img class="catalog-hero-photo" src="{{ asset($heroImage) }}" alt="" aria-hidden="true">
     <div class="shell catalog-hero-inner">
-        <div>
+        <div class="catalog-hero-copy">
             <div class="breadcrumb breadcrumb-light"><a href="{{ route('home') }}">Home</a><span>/</span>{{ ucfirst(strtolower($label)) }}</div>
             <span class="eyebrow eyebrow-light">Lunar Jewels · Collection</span>
             <h1 class="display">{{ $label }}</h1>
             <p>{{ $heroCopy }}</p>
         </div>
-        <div class="catalog-orbit" aria-hidden="true"><span></span></div>
+        <div class="catalog-hero-signature" aria-hidden="true">
+            <div class="catalog-signature-meta">
+                <span>{{ $heroMeta }}</span>
+            </div>
+            <strong>{{ $heroWord }}</strong>
+        </div>
     </div>
 </section>
 

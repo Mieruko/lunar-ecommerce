@@ -7,31 +7,35 @@
 @php($compareAt = $variant?->compare_at_price_amount)
 
 <article class="product-card">
-    <a class="product-image {{ $secondaryImage ? 'has-alt-image' : '' }}" href="{{ route('products.show', $product) }}" aria-label="Xem {{ $product->name }}">
-        <span class="product-badges">
-            @if($product->is_featured)<span class="product-badge">Selected</span>@endif
-            @if($compareAt && $compareAt > $price)<span class="product-badge product-badge-sale">-{{ (int) round((1 - $price / $compareAt) * 100) }}%</span>@endif
-            @if($stock > 0 && $stock <= 2)<span class="product-badge product-badge-warm">Last pieces</span>@endif
-        </span>
-        @if($image)
-            <img class="product-image-primary" src="{{ $image }}" alt="{{ $product->name }}" loading="lazy">
-            @if($secondaryImage)
-                <img class="product-image-alt" src="{{ $secondaryImage }}" alt="" aria-hidden="true" loading="lazy">
-            @endif
-        @else
-            <span class="product-placeholder" aria-hidden="true">LJ</span>
-        @endif
-        <span class="product-view">View piece <span>↗</span></span>
-    </a>
+    <div class="product-media">
+        <div class="product-card-toolbar">
+            <span class="product-badges">
+                @if($product->is_featured)<span class="product-badge">Selected</span>@endif
+                @if($compareAt && $compareAt > $price)<span class="product-badge product-badge-sale">-{{ (int) round((1 - $price / $compareAt) * 100) }}%</span>@endif
+                @if($stock > 0 && $stock <= 2)<span class="product-badge product-badge-warm">Last pieces</span>@endif
+            </span>
 
-    @auth
-        <form class="card-wishlist-form" method="POST" action="{{ route('account.wishlist.toggle', $product) }}">
-            @csrf
-            <button class="card-wishlist" type="submit" aria-label="Lưu {{ $product->name }} vào yêu thích" title="Yêu thích">♡</button>
-        </form>
-    @else
-        <a class="card-wishlist" href="{{ route('login') }}" aria-label="Đăng nhập để lưu sản phẩm yêu thích" title="Yêu thích">♡</a>
-    @endauth
+            @auth
+                <form class="card-wishlist-form" method="POST" action="{{ route('account.wishlist.toggle', $product) }}">
+                    @csrf
+                    <button class="card-wishlist" type="submit" aria-label="Lưu {{ $product->name }} vào yêu thích" title="Yêu thích">♡</button>
+                </form>
+            @else
+                <a class="card-wishlist" href="{{ route('login') }}" aria-label="Đăng nhập để lưu sản phẩm yêu thích" title="Yêu thích">♡</a>
+            @endauth
+        </div>
+
+        <a class="product-image {{ $secondaryImage ? 'has-alt-image' : '' }}" href="{{ route('products.show', $product) }}" aria-label="Xem {{ $product->name }}">
+            @if($image)
+                <img class="product-image-primary" src="{{ $image }}" alt="{{ $product->name }}" loading="lazy">
+                @if($secondaryImage)
+                    <img class="product-image-alt" src="{{ $secondaryImage }}" alt="" aria-hidden="true" loading="lazy">
+                @endif
+            @else
+                <span class="product-placeholder" aria-hidden="true">LJ</span>
+            @endif
+        </a>
+    </div>
 
     <div class="product-info">
         <div class="product-meta">

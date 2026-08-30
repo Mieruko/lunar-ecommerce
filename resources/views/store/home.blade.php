@@ -56,10 +56,11 @@
     <div class="collection-duo" data-reveal-group>
         <a data-reveal="scale" class="collection-panel collection-watch" href="{{ route('watches') }}">
             <div class="collection-index">01</div>
-            <div class="collection-art collection-art-watch">
-                <span class="watch-dial"></span>
-                <span class="watch-hand watch-hand-one"></span>
-                <span class="watch-hand watch-hand-two"></span>
+            <div class="collection-art collection-art-watch" aria-hidden="true">
+                <img src="{{ asset('images/hero-moon-dial.webp') }}"
+                     srcset="{{ asset('images/hero-moon-dial-sm.webp') }} 760w, {{ asset('images/hero-moon-dial.webp') }} 1400w"
+                     sizes="(max-width: 900px) 100vw, 50vw"
+                     alt="" loading="lazy" decoding="async">
             </div>
             <div class="collection-copy">
                 <span class="eyebrow eyebrow-light">Lunar Watches</span>
@@ -71,10 +72,9 @@
 
         <a data-reveal="scale" class="collection-panel collection-jewel" href="{{ route('jewelry') }}">
             <div class="collection-index">02</div>
-            <div class="collection-art collection-art-jewel">
-                <span class="jewel-ring jewel-ring-one"></span>
-                <span class="jewel-ring jewel-ring-two"></span>
-                <span class="jewel-stone"></span>
+            <div class="collection-art collection-art-jewel" aria-hidden="true">
+                <img src="{{ asset('images/products/concepts/eternal-pair-wedding-bands/eternal-pair-wedding-bands-04.jpg') }}"
+                     alt="" loading="lazy" decoding="async">
             </div>
             <div class="collection-copy">
                 <span class="eyebrow">Lunar Jewels</span>
