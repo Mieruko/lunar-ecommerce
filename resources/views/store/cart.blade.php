@@ -1,27 +1,27 @@
-@extends('layouts.store', ['title' => 'Giỏ hàng | LUNAR JEWELS'])
+@extends('layouts.store', ['title' => __('store.cart.page_title').' | LUNAR JEWELS'])
 
 @section('content')
 <section class="subpage-hero">
     <div class="shell subpage-hero-inner">
         <div>
             <span class="eyebrow eyebrow-light">Your selection</span>
-            <h1 class="display section-title">GIỎ HÀNG</h1>
+            <h1 class="display section-title">{{ __('store.cart.heading') }}</h1>
         </div>
-        <p>{{ $cart->items->count() }} {{ $cart->items->count() === 1 ? 'thiết kế' : 'thiết kế' }} đang chờ bạn hoàn tất lựa chọn.</p>
+        <p>{{ __('store.cart.count', ['count' => $cart->items->count()]) }}</p>
     </div>
 </section>
 
 <section class="page">
     <div class="shell">
-        <div class="breadcrumb"><a href="{{ route('home') }}">Trang chủ</a><span>/</span>Giỏ hàng</div>
+        <div class="breadcrumb"><a href="{{ route('home') }}">{{ __('store.common.home') }}</a><span>/</span>{{ __('store.cart.page_title') }}</div>
 
         @if($cart->items->isEmpty())
             <div class="lunar-empty lunar-empty-wide">
                 <span class="empty-orbit" aria-hidden="true"></span>
-                <span class="eyebrow">Your bag is empty</span>
-                <h2>Chưa có món đồ nào trong giỏ.</h2>
-                <p>Khám phá những thiết kế đồng hồ và trang sức được tuyển chọn cho dấu mốc tiếp theo của bạn.</p>
-                <a class="button" href="{{ route('shop') }}">Khám phá bộ sưu tập <span>→</span></a>
+                <span class="eyebrow">{{ __('store.cart.empty_kicker') }}</span>
+                <h2>{{ __('store.cart.empty_title') }}</h2>
+                <p>{{ __('store.cart.empty_copy') }}</p>
+                <a class="button" href="{{ route('shop') }}">{{ __('store.cart.explore') }} <span>→</span></a>
             </div>
         @else
             <div class="cart-layout lunar-cart-layout">
@@ -30,7 +30,7 @@
                         <span class="panel-index">01</span>
                         <div>
                             <span class="eyebrow">Selected pieces</span>
-                            <h2>Sản phẩm của bạn</h2>
+                            <h2>{{ __('store.cart.your_products') }}</h2>
                         </div>
                     </div>
 
@@ -43,7 +43,7 @@
                             @endphp
 
                             <article class="lunar-cart-item">
-                                <a class="cart-product-image" href="{{ route('products.show', $product) }}" aria-label="Xem {{ $product->name }}">
+                                <a class="cart-product-image" href="{{ route('products.show', $product) }}" aria-label="{{ __('store.product_card.view', ['product' => $product->name]) }}">
                                     @if($image)
                                         <img src="{{ $image }}" alt="{{ $product->name }}">
                                     @else
@@ -57,7 +57,7 @@
                                     @if($item->variant->name)
                                         <p class="cart-variant">{{ $item->variant->name }}</p>
                                     @endif
-                                    <p class="stock {{ $stock <= 2 ? 'low' : '' }}">{{ $stock > 0 ? ($stock <= 2 ? 'Sắp hết hàng' : 'Còn hàng') : 'Tạm hết hàng' }}</p>
+                                    <p class="stock {{ $stock <= 2 ? 'low' : '' }}">{{ $stock > 0 ? ($stock <= 2 ? __('store.cart.low_stock') : __('store.cart.in_stock')) : __('store.cart.out_of_stock') }}</p>
 
                                     <div class="cart-mobile-price"><x-money :amount="$item->unit_price_amount * $item->quantity" /></div>
 
@@ -66,63 +66,63 @@
                                             @csrf
                                             @method('PATCH')
                                             <div class="quantity" data-quantity>
-                                                <button type="button" data-minus aria-label="Giảm số lượng">−</button>
-                                                <input name="quantity" value="{{ $item->quantity }}" inputmode="numeric" aria-label="Số lượng">
-                                                <button type="button" data-plus aria-label="Tăng số lượng">+</button>
+                                                <button type="button" data-minus aria-label="{{ __('store.cart.decrease') }}">−</button>
+                                                <input name="quantity" value="{{ $item->quantity }}" inputmode="numeric" aria-label="{{ __('store.cart.quantity') }}">
+                                                <button type="button" data-plus aria-label="{{ __('store.cart.increase') }}">+</button>
                                             </div>
-                                            <button type="submit" class="cart-text-action">Cập nhật</button>
+                                            <button type="submit" class="cart-text-action">{{ __('store.cart.update') }}</button>
                                         </form>
 
                                         <form action="{{ route('cart.destroy', $item) }}" method="POST" data-remove-line>
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="cart-text-action danger-action">Xóa</button>
+                                            <button type="submit" class="cart-text-action danger-action">{{ __('store.cart.remove') }}</button>
                                         </form>
                                     </div>
                                 </div>
 
                                 <div class="cart-line-price">
-                                    <span>Thành tiền</span>
+                                    <span>{{ __('store.cart.line_total') }}</span>
                                     <strong><x-money :amount="$item->unit_price_amount * $item->quantity" /></strong>
                                 </div>
                             </article>
                         @endforeach
                     </div>
 
-                    <a class="text-link" href="{{ route('shop') }}">← Tiếp tục mua sắm</a>
+                    <a class="text-link" href="{{ route('shop') }}">← {{ __('store.cart.continue') }}</a>
                 </section>
 
                 <aside class="order-summary lunar-summary">
                     <div class="summary-kicker"><span>02</span> Order summary</div>
-                    <h2>Tóm tắt đơn hàng</h2>
-                    <p class="summary-note">Phí vận chuyển cuối cùng được xác nhận ở bước thanh toán.</p>
+                    <h2>{{ __('store.cart.summary') }}</h2>
+                    <p class="summary-note">{{ __('store.cart.summary_note') }}</p>
 
                     @if($coupon)
                         <div class="coupon lunar-coupon coupon-applied">
                             <div>
                                 <b>{{ $coupon['code'] }}</b>
-                                <small>Đã áp dụng mã ưu đãi</small>
+                                <small>{{ __('store.cart.coupon_applied') }}</small>
                                 @if($totals['discount'])
-                                    <span class="coupon-saving">Bạn tiết kiệm <x-money :amount="$totals['discount']" /></span>
+                                    <span class="coupon-saving">{{ __('store.cart.you_save') }} <x-money :amount="$totals['discount']" /></span>
                                 @endif
                             </div>
-                            <form action="{{ route('cart.coupon.remove') }}" method="POST" data-loading-form>@csrf @method('DELETE')<button class="button-outline">Gỡ mã</button></form>
+                            <form action="{{ route('cart.coupon.remove') }}" method="POST" data-loading-form>@csrf @method('DELETE')<button class="button-outline">{{ __('store.cart.remove_coupon') }}</button></form>
                         </div>
                     @else
                         <form class="coupon lunar-coupon" action="{{ route('cart.coupon.apply') }}" method="POST" data-loading-form>
                             @csrf
-                            <input name="code" value="{{ old('code') }}" placeholder="Mã ưu đãi" maxlength="80" aria-label="Mã ưu đãi">
-                            <button class="button-outline">Áp dụng</button>
+                            <input name="code" value="{{ old('code') }}" placeholder="{{ __('store.cart.coupon') }}" maxlength="80" aria-label="{{ __('store.cart.coupon') }}">
+                            <button class="button-outline">{{ __('store.cart.apply') }}</button>
                         </form>
                         @error('code')<p class="coupon-error-hint" role="alert">{{ $message }}</p>@enderror
                     @endif
 
                     <x-order-summary :totals="$totals" :coupon="$coupon" />
 
-                    <a class="button checkout-button" href="{{ route('checkout.shipping') }}">Tiến hành thanh toán <span>→</span></a>
+                    <a class="button checkout-button" href="{{ route('checkout.shipping') }}">{{ __('store.cart.checkout') }} <span>→</span></a>
                     <div class="summary-assurances">
-                        <span>✦ Thanh toán bảo mật</span>
-                        <span>✦ Chính sách đổi trả minh bạch</span>
+                        <span>✦ {{ __('store.cart.secure_payment') }}</span>
+                        <span>✦ {{ __('store.cart.transparent_returns') }}</span>
                     </div>
                 </aside>
             </div>

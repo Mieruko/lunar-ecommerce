@@ -79,6 +79,33 @@ class CustomerHubTest extends TestCase
         $this->assertNotNull($otherOrder);
     }
 
+    public function test_customer_notifications_follow_the_storefront_locale(): void
+    {
+        $this->withoutVite();
+        $owner = User::factory()->create(['status' => 'active']);
+        $order = $this->order($owner);
+        $order->update(['status' => 'preparing']);
+
+        $this->actingAs($owner)
+            ->post(route('locale.switch', 'en'))
+            ->assertRedirect();
+
+        $this->actingAs($owner)
+            ->get(route('account.notifications'))
+            ->assertOk()
+            ->assertSee('Order is being prepared')
+            ->assertSee('Order '.$order->order_number);
+
+        $this->actingAs($owner)
+            ->post(route('locale.switch', 'vi'))
+            ->assertRedirect();
+
+        $this->actingAs($owner)
+            ->get(route('account.notifications'))
+            ->assertSee('Đơn hàng đang được chuẩn bị')
+            ->assertSee('Mã đơn '.$order->order_number);
+    }
+
     public function test_customer_can_create_after_sales_request_only_for_own_order(): void
     {
         $user = User::factory()->create(['status' => 'active']);

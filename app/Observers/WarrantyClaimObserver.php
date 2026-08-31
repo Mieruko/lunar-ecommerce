@@ -46,6 +46,8 @@ class WarrantyClaimObserver
             $message,
             route('account.after-sales', [], false),
             ['order_id' => $order->id, 'warranty_claim_id' => $claim->id],
+            'notifications.content.warranty.'.($claim->status ?: 'generic'),
+            ['claim' => $claim->claim_number, 'order' => $order->order_number, 'resolution' => $claim->resolution ?: ''],
         ));
     }
 }

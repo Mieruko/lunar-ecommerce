@@ -13,32 +13,32 @@
 
 <div {{ $attributes->class(['summary-table']) }}>
     <div class="summary-row">
-        <span>Tạm tính</span>
+        <span>{{ __('store.order_summary.subtotal') }}</span>
         <b><x-money :amount="$totals['subtotal']" /></b>
     </div>
 
     @if(!empty($totals['discount']))
         <div class="summary-row summary-row-discount">
-            <span>Giảm giá{{ $coupon ? ' · '.$coupon['code'] : '' }}</span>
+            <span>{{ __('store.order_summary.discount') }}{{ $coupon ? ' · '.$coupon['code'] : '' }}</span>
             <b class="summary-discount">− <x-money :amount="$totals['discount']" /></b>
         </div>
     @endif
 
     <div class="summary-row">
-        <span>Vận chuyển</span>
+        <span>{{ __('store.order_summary.shipping') }}</span>
         <b data-shipping-fee>
             @if($shippingPending)
-                Chọn địa chỉ
+                {{ __('store.order_summary.choose_address') }}
             @elseif(!empty($totals['shipping']))
                 <x-money :amount="$totals['shipping']" />
             @else
-                Miễn phí
+                {{ __('store.order_summary.free') }}
             @endif
         </b>
     </div>
 
     <div class="summary-row total">
-        <span>Tổng cộng</span>
+        <span>{{ __('store.order_summary.total') }}</span>
         <span data-checkout-total><x-money :amount="$totals['total']" /></span>
     </div>
 </div>

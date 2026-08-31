@@ -41,6 +41,8 @@ class ReturnRequestObserver
             'Phiếu '.$request->return_number.' · đơn '.$order->order_number.'.',
             route('account.after-sales', [], false),
             ['order_id' => $order->id, 'return_request_id' => $request->id],
+            'notifications.content.return.'.($request->status ?: 'generic'),
+            ['return' => $request->return_number, 'order' => $order->order_number],
         ));
     }
 }

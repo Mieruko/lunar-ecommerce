@@ -31,7 +31,7 @@ class OrderObserver
         [$title, $message] = self::STATUS_MESSAGES[$order->status]
             ?? ['Đã tiếp nhận đơn hàng', 'Đơn hàng của bạn đã được tạo thành công.'];
 
-        $this->notify($order, $title, $message, 'order');
+        $this->notify($order, $title, $message, 'order', 'order.'.($order->status ?: 'generic'));
     }
 
     public function updated(Order $order): void
@@ -44,23 +44,23 @@ class OrderObserver
         // update. One concise notification is clearer than two duplicate alerts.
         if ($order->wasChanged('payment_status') && $order->payment_status === 'paid') {
             [$title, $message] = self::PAYMENT_MESSAGES['paid'];
-            $this->notify($order, $title, $message, 'payment');
+            $this->notify($order, $title, $message, 'payment', 'payment.paid');
             return;
         }
 
         if ($order->wasChanged('status')) {
             [$title, $message] = self::STATUS_MESSAGES[$order->status]
                 ?? ['Trạng thái đơn hàng đã thay đổi', 'Đơn hàng vừa được cập nhật.'];
-            $this->notify($order, $title, $message, 'order');
+            $this->notify($order, $title, $message, 'order', 'order.'.($order->status ?: 'generic'));
             return;
         }
 
         [$title, $message] = self::PAYMENT_MESSAGES[$order->payment_status]
             ?? ['Thanh toán đã được cập nhật', 'Thông tin thanh toán của đơn hàng vừa thay đổi.'];
-        $this->notify($order, $title, $message, 'payment');
+        $this->notify($order, $title, $message, 'payment', 'payment.'.($order->payment_status ?: 'generic'));
     }
 
-    private function notify(Order $order, string $title, string $message, string $category): void
+    private function notify(Order $order, string $title, string $message, string $category, string $translationKey): void
     {
         $customer = $order->customer()->first();
         if (! $customer) {
@@ -73,6 +73,8 @@ class OrderObserver
             $message.' Mã đơn '.$order->order_number.'.',
             route('account.orders.show', $order, false),
             ['order_id' => $order->id, 'order_number' => $order->order_number],
+            'notifications.content.'.$translationKey,
+            ['order' => $order->order_number],
         ));
     }
 }

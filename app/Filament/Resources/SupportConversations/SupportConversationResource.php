@@ -613,6 +613,7 @@ class SupportConversationResource extends AdminResource
             'Yêu cầu hỗ trợ của bạn có phản hồi mới từ nhân viên chăm sóc khách hàng.',
             route('home', ['support' => 'chat']),
             ['conversation_id' => $conversation->id],
+            'notifications.content.support',
         ));
     }
 }

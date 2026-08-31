@@ -238,4 +238,34 @@ class StorefrontTest extends TestCase
         $this->assertDatabaseHas('payments', ['id' => $payment->id, 'status' => 'failed']);
         $this->assertDatabaseHas('orders', ['id' => $order->id, 'payment_status' => 'failed']);
     }
+
+    public function test_guest_can_switch_storefront_between_vietnamese_and_english(): void
+    {
+        $this->withoutVite();
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('Miễn phí giao hàng cho đơn từ 5.000.000 ₫');
+
+        $this->from(route('shop'))
+            ->post(route('locale.switch', 'en'))
+            ->assertRedirect(route('shop'))
+            ->assertSessionHas('locale', 'en');
+
+        $this->get(route('shop'))
+            ->assertOk()
+            ->assertSee('Complimentary delivery on orders from ₫5,000,000')
+            ->assertSee('Apply filters')
+            ->assertSee('No matching products found');
+
+        $this->from(route('home'))
+            ->post(route('locale.switch', 'vi'))
+            ->assertRedirect(route('home'))
+            ->assertSessionHas('locale', 'vi');
+    }
+
+    public function test_unsupported_storefront_locale_is_rejected(): void
+    {
+        $this->post('/locale/fr')->assertNotFound();
+    }
 }

@@ -34,7 +34,7 @@ export const showToast = (message, type = 'info', duration = 4200) => {
   const close = document.createElement('button');
   close.type = 'button';
   close.className = 'toast-close';
-  close.setAttribute('aria-label', 'Đóng thông báo');
+  close.setAttribute('aria-label', document.documentElement.lang === 'en' ? 'Close notification' : 'Đóng thông báo');
   close.textContent = '×';
 
   toast.append(icon, body, close);

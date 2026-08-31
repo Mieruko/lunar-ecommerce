@@ -15,6 +15,8 @@ class CustomerNotification extends Notification
         private readonly string $message,
         private readonly ?string $actionUrl = null,
         private readonly array $context = [],
+        private readonly ?string $translationKey = null,
+        private readonly array $translationParams = [],
     ) {}
 
     public function via(object $notifiable): array
@@ -30,6 +32,8 @@ class CustomerNotification extends Notification
             'message' => $this->message,
             'action_url' => $this->actionUrl,
             'context' => $this->context,
+            'translation_key' => $this->translationKey,
+            'translation_params' => $this->translationParams,
         ];
     }
 }

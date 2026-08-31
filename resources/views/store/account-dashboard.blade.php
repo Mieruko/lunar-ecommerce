@@ -29,7 +29,7 @@
         <div class="account-content dashboard-content">
             <nav class="account-quick-links" aria-label="Truy cập nhanh">
                 <a href="{{ route('account.orders') }}"><span>↗</span><b>Lịch sử mua hàng</b><small>{{ $stats['orders'] }} đơn</small></a>
-                <a href="{{ route('account.notifications') }}"><span>◎</span><b>Thông báo</b><small>{{ $stats['notifications'] }} chưa đọc</small></a>
+                <a href="{{ route('account.notifications') }}"><span>◎</span><b>{{ __('store.notifications.title') }}</b><small>{{ __('store.notifications.unread_count', ['count' => $stats['notifications']]) }}</small></a>
                 <a href="{{ route('account.benefits') }}"><span>◇</span><b>Mã ưu đãi</b><small>{{ $coupons->count() }} đang hiển thị</small></a>
                 <a href="{{ route('account.wishlist') }}"><span>♡</span><b>Yêu thích</b><small>{{ $stats['wishlist'] }} sản phẩm</small></a>
                 <a href="{{ route('account.after-sales') }}"><span>⌁</span><b>Hậu mãi</b><small>Đổi trả & bảo hành</small></a>
@@ -88,14 +88,14 @@
 
             <section class="dashboard-panel dashboard-notifications">
                 <div class="dashboard-panel-head">
-                    <div><span class="eyebrow">Latest updates</span><h2>Thông báo mới</h2></div>
-                    <a href="{{ route('account.notifications') }}">Xem tất cả <span>→</span></a>
+                    <div><span class="eyebrow">{{ __('store.notifications.latest') }}</span><h2>{{ __('store.notifications.title') }}</h2></div>
+                    <a href="{{ route('account.notifications') }}">{{ __('store.notifications.view_all') }} <span>→</span></a>
                 </div>
                 <div>
                     @forelse($notifications as $notification)
                         @include('store.partials.notification-row', ['notification' => $notification])
                     @empty
-                        <div class="dashboard-empty"><p>Các cập nhật về đơn hàng và hậu mãi sẽ xuất hiện tại đây.</p></div>
+                        <div class="dashboard-empty"><p>{{ __('store.notifications.latest_empty') }}</p></div>
                     @endforelse
                 </div>
             </section>

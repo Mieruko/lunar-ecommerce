@@ -1,4 +1,4 @@
-@extends('layouts.store', ['title' => ($mode === 'login' ? 'Đăng nhập' : 'Đăng ký').' | LUNAR JEWELS'])
+@extends('layouts.store', ['title' => ($mode === 'login' ? __('store.auth.login_title') : __('store.auth.register_title')).' | LUNAR JEWELS'])
 
 @section('content')
 <section class="auth-page">
@@ -16,20 +16,20 @@
 
         <div class="auth-panel">
             <div class="auth-panel-inner">
-                <span class="eyebrow">Private client account</span>
-                <h1>{{ $mode === 'login' ? 'Chào mừng trở lại.' : 'Bắt đầu hành trình của bạn.' }}</h1>
-                <p class="auth-intro">{{ $mode === 'login' ? 'Đăng nhập để theo dõi đơn hàng và quản lý thông tin của bạn.' : 'Tạo tài khoản để lưu thông tin giao hàng và theo dõi những đơn hàng tiếp theo.' }}</p>
+                <span class="eyebrow">{{ __('store.auth.kicker') }}</span>
+                <h1>{{ $mode === 'login' ? __('store.auth.welcome_back') : __('store.auth.start_journey') }}</h1>
+                <p class="auth-intro">{{ $mode === 'login' ? __('store.auth.login_intro') : __('store.auth.register_intro') }}</p>
 
                 <form class="auth-form" method="POST" action="{{ $mode === 'login' ? route('login.store') : route('register.store') }}">
                     @csrf
 
                     @if($mode === 'register')
                         <label class="field">
-                            <span>Họ và tên</span>
+                            <span>{{ __('store.auth.name') }}</span>
                             <input name="name" value="{{ old('name') }}" autocomplete="name" required>
                         </label>
                         <label class="field">
-                            <span>Số điện thoại</span>
+                            <span>{{ __('store.auth.phone') }}</span>
                             <input name="phone" value="{{ old('phone') }}" autocomplete="tel">
                         </label>
                     @endif
@@ -39,25 +39,25 @@
                         <input name="email" type="email" value="{{ old('email') }}" autocomplete="email" required>
                     </label>
                     <label class="field">
-                        <span>Mật khẩu</span>
+                        <span>{{ __('store.auth.password') }}</span>
                         <input name="password" type="password" autocomplete="{{ $mode === 'login' ? 'current-password' : 'new-password' }}" required>
                     </label>
 
                     @if($mode === 'register')
                         <label class="field">
-                            <span>Xác nhận mật khẩu</span>
+                            <span>{{ __('store.auth.confirm_password') }}</span>
                             <input name="password_confirmation" type="password" autocomplete="new-password" required>
                         </label>
                     @else
-                        <label class="remember-row"><input type="checkbox" name="remember"><span>Ghi nhớ đăng nhập trên thiết bị này</span></label>
+                        <label class="remember-row"><input type="checkbox" name="remember"><span>{{ __('store.auth.remember') }}</span></label>
                     @endif
 
-                    <button class="button auth-submit" type="submit">{{ $mode === 'login' ? 'Đăng nhập' : 'Tạo tài khoản' }} <span>→</span></button>
+                    <button class="button auth-submit" type="submit">{{ $mode === 'login' ? __('store.common.login') : __('store.auth.create_account') }} <span>→</span></button>
                 </form>
 
                 <div class="auth-switch">
-                    <span>{{ $mode === 'login' ? 'Chưa có tài khoản?' : 'Đã có tài khoản?' }}</span>
-                    <a class="text-link" href="{{ $mode === 'login' ? route('register') : route('login') }}">{{ $mode === 'login' ? 'Đăng ký' : 'Đăng nhập' }}</a>
+                    <span>{{ $mode === 'login' ? __('store.auth.no_account') : __('store.auth.has_account') }}</span>
+                    <a class="text-link" href="{{ $mode === 'login' ? route('register') : route('login') }}">{{ $mode === 'login' ? __('store.common.register') : __('store.common.login') }}</a>
                 </div>
             </div>
         </div>

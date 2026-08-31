@@ -21,11 +21,17 @@ class ShipmentObserver
             return;
         }
 
+        $translationKey = null;
+        $translationParams = ['order' => $order->order_number];
         if ($shipment->wasChanged('status') && isset(self::STATUS_MESSAGES[$shipment->status])) {
             [$title, $message] = self::STATUS_MESSAGES[$shipment->status];
+            $translationKey = 'notifications.content.shipment.'.$shipment->status;
         } elseif ($shipment->wasChanged('tracking_number') && filled($shipment->tracking_number)) {
             $title = 'Đã có mã vận đơn';
             $message = trim(($shipment->carrier ?: 'Đơn vị vận chuyển').' · '.$shipment->tracking_number);
+            $translationKey = 'notifications.content.shipment.tracking_added';
+            $translationParams['carrier'] = $shipment->carrier ?: 'Đơn vị vận chuyển';
+            $translationParams['tracking'] = $shipment->tracking_number;
         } else {
             return;
         }
@@ -36,6 +42,8 @@ class ShipmentObserver
             $message.' Mã đơn '.$order->order_number.'.',
             route('account.orders.show', $order, false),
             ['order_id' => $order->id, 'shipment_id' => $shipment->id],
+            $translationKey,
+            $translationParams,
         ));
     }
 }

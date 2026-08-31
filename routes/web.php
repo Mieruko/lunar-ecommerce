@@ -11,6 +11,15 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\StorefrontController;
 use App\Http\Controllers\SupportChatController;
+use Illuminate\Http\Request;
+
+Route::post('/locale/{locale}', function (Request $request, string $locale) {
+    abort_unless(in_array($locale, ['vi', 'en'], true), 404);
+
+    $request->session()->put('locale', $locale);
+
+    return back();
+})->name('locale.switch');
 
 Route::get('/', [StorefrontController::class, 'home'])->name('home');
 Route::get('/shop', [StorefrontController::class, 'shop'])->name('shop');

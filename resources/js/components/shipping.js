@@ -8,7 +8,7 @@
 export const lunarFormatVnd = (value) =>
   `${new Intl.NumberFormat('vi-VN').format(Number(value || 0))} ₫`;
 
-export const lunarFetchJson = async (url, params = {}) => {
+export const lunarFetchJson = async (url, params = {}, fallbackMessage = 'Unable to load address data.') => {
   const requestUrl = new URL(url, window.location.origin);
 
   Object.entries(params).forEach(([key, value]) => {
@@ -27,7 +27,7 @@ export const lunarFetchJson = async (url, params = {}) => {
   const payload = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(payload.message || 'Không thể tải dữ liệu địa chỉ.');
+    throw new Error(payload.message || fallbackMessage);
   }
 
   return payload;
@@ -65,6 +65,27 @@ const pulse = (element) => {
 
 export default function initShipping() {
   document.querySelectorAll('[data-vn-address-form]').forEach((form) => {
+    const vi = document.documentElement.lang === 'vi';
+    const defaults = vi ? {
+      addressError: 'Không thể tải dữ liệu địa chỉ.', selectAddress: 'Chọn địa chỉ để tính phí',
+      selectAddressHelp: 'Hệ thống sẽ xác định khu vực từ Tỉnh/Thành và Phường/Xã.', chooseAddress: 'Chọn địa chỉ',
+      determiningZone: 'Đang xác định khu vực…', calculatingShipping: 'Đang tính phí vận chuyển.', free: 'Miễn phí',
+      freeShippingThreshold: 'Đơn hàng đạt mức miễn phí vận chuyển :amount.', configuredFee: 'Phí được tính từ khu vực giao hàng đã cấu hình trong hệ thống.',
+      feeUnavailable: 'Chưa tính được phí', undetermined: 'Chưa xác định', loadingWard: 'Đang tải Phường / Xã...',
+      selectProvinceFirst: 'Chọn Tỉnh / Thành trước', selectWard: 'Chọn Phường / Xã / Đặc khu', wardLoadError: 'Không tải được Phường / Xã',
+      addressLoadError: 'Không tải được địa chỉ', loadingProvince: 'Đang tải Tỉnh / Thành...', selectProvince: 'Chọn Tỉnh / Thành',
+      addressDataMissing: 'Chưa có dữ liệu địa chỉ', administrativeDataMissing: 'Chưa có dữ liệu hành chính',
+    } : {
+      addressError: 'Unable to load address data.', selectAddress: 'Select an address to calculate shipping',
+      selectAddressHelp: 'Select a province/city and ward/commune so the system can determine your shipping zone.', chooseAddress: 'Choose an address',
+      determiningZone: 'Determining shipping zone…', calculatingShipping: 'Calculating shipping.', free: 'Complimentary',
+      freeShippingThreshold: 'Your order qualifies for complimentary delivery at :amount.', configuredFee: 'The fee is calculated from the configured shipping zone.',
+      feeUnavailable: 'Shipping unavailable', undetermined: 'Not determined', loadingWard: 'Loading wards / communes...',
+      selectProvinceFirst: 'Select a province / city first', selectWard: 'Select a ward / commune / special zone', wardLoadError: 'Unable to load wards / communes',
+      addressLoadError: 'Unable to load the address', loadingProvince: 'Loading provinces / cities...', selectProvince: 'Select a province / city',
+      addressDataMissing: 'Address data is unavailable', administrativeDataMissing: 'Administrative data is unavailable',
+    };
+    const labels = { ...defaults, ...JSON.parse(form.dataset.i18n || '{}') };
     const province = form.querySelector('[data-vn-province]');
     const ward = form.querySelector('[data-vn-ward]');
 
@@ -89,12 +110,12 @@ export default function initShipping() {
 
     const resetQuote = () => {
       setQuote(
-        'Chọn địa chỉ để tính phí',
-        'Hệ thống sẽ xác định khu vực từ Tỉnh/Thành và Phường/Xã.',
+        labels.selectAddress,
+        labels.selectAddressHelp,
         '—'
       );
 
-      if (summaryFee) summaryFee.textContent = 'Chọn địa chỉ';
+      if (summaryFee) summaryFee.textContent = labels.chooseAddress;
     };
 
     const loadQuote = async () => {
@@ -105,28 +126,28 @@ export default function initShipping() {
       }
 
       zoneBox?.classList.add('is-loading');
-      setQuote('Đang xác định khu vực…', 'Đang tính phí vận chuyển.', '…');
+      setQuote(labels.determiningZone, labels.calculatingShipping, '…');
 
       try {
         const data = await lunarFetchJson(form.dataset.quoteUrl, {
           province_code: province.value,
           ward_code: ward.value,
-        });
+        }, labels.addressError);
 
         const feeText = data.shipping_fee > 0
           ? lunarFormatVnd(data.shipping_fee)
-          : 'Miễn phí';
+          : labels.free;
 
         if (data.free_shipping) {
           setQuote(
             data.zone_name,
-            `Đơn hàng đạt mức miễn phí vận chuyển ${lunarFormatVnd(data.free_shipping_threshold)}.`,
+            labels.freeShippingThreshold.replace(':amount', lunarFormatVnd(data.free_shipping_threshold)),
             feeText
           );
         } else {
           setQuote(
             data.zone_name,
-            'Phí được tính từ khu vực giao hàng đã cấu hình trong hệ thống.',
+            labels.configuredFee,
             feeText
           );
         }
@@ -140,10 +161,10 @@ export default function initShipping() {
           pulse(summaryTotal);
         }
       } catch (error) {
-        setQuote('Chưa tính được phí', error.message, '—');
+        setQuote(labels.feeUnavailable, error.message, '—');
 
         if (summaryFee) {
-          summaryFee.textContent = 'Chưa xác định';
+          summaryFee.textContent = labels.undetermined;
         }
       } finally {
         zoneBox?.classList.remove('is-loading');
@@ -152,23 +173,23 @@ export default function initShipping() {
 
     const loadWards = async (provinceCode, selected = '') => {
       ward.disabled = true;
-      ward.innerHTML = '<option value="">Đang tải Phường / Xã...</option>';
+      ward.innerHTML = `<option value="">${labels.loadingWard}</option>`;
       resetQuote();
 
       if (!provinceCode) {
-        ward.innerHTML = '<option value="">Chọn Tỉnh / Thành trước</option>';
+        ward.innerHTML = `<option value="">${labels.selectProvinceFirst}</option>`;
         return;
       }
 
       try {
         const payload = await lunarFetchJson(form.dataset.wardsUrl, {
           province_code: provinceCode,
-        });
+        }, labels.addressError);
 
         lunarFillSelect(
           ward,
           payload.data || [],
-          'Chọn Phường / Xã / Đặc khu',
+          labels.selectWard,
           selected
         );
 
@@ -176,22 +197,22 @@ export default function initShipping() {
           await loadQuote();
         }
       } catch (error) {
-        ward.innerHTML = '<option value="">Không tải được Phường / Xã</option>';
-        setQuote('Không tải được địa chỉ', error.message, '—');
+        ward.innerHTML = `<option value="">${labels.wardLoadError}</option>`;
+        setQuote(labels.addressLoadError, error.message, '—');
       }
     };
 
     const loadProvinces = async () => {
       province.disabled = true;
-      province.innerHTML = '<option value="">Đang tải Tỉnh / Thành...</option>';
+      province.innerHTML = `<option value="">${labels.loadingProvince}</option>`;
 
       try {
-        const payload = await lunarFetchJson(form.dataset.provincesUrl);
+        const payload = await lunarFetchJson(form.dataset.provincesUrl, {}, labels.addressError);
 
         lunarFillSelect(
           province,
           payload.data || [],
-          'Chọn Tỉnh / Thành',
+          labels.selectProvince,
           selectedProvince
         );
 
@@ -199,10 +220,10 @@ export default function initShipping() {
           await loadWards(province.value, selectedWard);
         }
       } catch (error) {
-        province.innerHTML = '<option value="">Chưa có dữ liệu địa chỉ</option>';
+        province.innerHTML = `<option value="">${labels.addressDataMissing}</option>`;
 
         setQuote(
-          'Chưa có dữ liệu hành chính',
+          labels.administrativeDataMissing,
           'Hãy chạy: php artisan lunar:sync-vietnam-addresses',
           '—'
         );

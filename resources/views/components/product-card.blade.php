@@ -10,22 +10,22 @@
     <div class="product-media">
         <div class="product-card-toolbar">
             <span class="product-badges">
-                @if($product->is_featured)<span class="product-badge">Selected</span>@endif
+                @if($product->is_featured)<span class="product-badge">{{ __('store.product_card.selected') }}</span>@endif
                 @if($compareAt && $compareAt > $price)<span class="product-badge product-badge-sale">-{{ (int) round((1 - $price / $compareAt) * 100) }}%</span>@endif
-                @if($stock > 0 && $stock <= 2)<span class="product-badge product-badge-warm">Last pieces</span>@endif
+                @if($stock > 0 && $stock <= 2)<span class="product-badge product-badge-warm">{{ __('store.product_card.last_pieces') }}</span>@endif
             </span>
 
             @auth
                 <form class="card-wishlist-form" method="POST" action="{{ route('account.wishlist.toggle', $product) }}">
                     @csrf
-                    <button class="card-wishlist" type="submit" aria-label="Lưu {{ $product->name }} vào yêu thích" title="Yêu thích">♡</button>
+                    <button class="card-wishlist" type="submit" aria-label="{{ __('store.product_card.save', ['product' => $product->name]) }}" title="{{ __('store.product_card.wishlist') }}">♡</button>
                 </form>
             @else
-                <a class="card-wishlist" href="{{ route('login') }}" aria-label="Đăng nhập để lưu sản phẩm yêu thích" title="Yêu thích">♡</a>
+                <a class="card-wishlist" href="{{ route('login') }}" aria-label="{{ __('store.product_card.login_to_save') }}" title="{{ __('store.product_card.wishlist') }}">♡</a>
             @endauth
         </div>
 
-        <a class="product-image {{ $secondaryImage ? 'has-alt-image' : '' }}" href="{{ route('products.show', $product) }}" aria-label="Xem {{ $product->name }}">
+        <a class="product-image {{ $secondaryImage ? 'has-alt-image' : '' }}" href="{{ route('products.show', $product) }}" aria-label="{{ __('store.product_card.view', ['product' => $product->name]) }}">
             @if($image)
                 <img class="product-image-primary" src="{{ $image }}" alt="{{ $product->name }}" loading="lazy">
                 @if($secondaryImage)
@@ -40,12 +40,12 @@
     <div class="product-info">
         <div class="product-meta">
             <span class="brand">{{ $product->brand?->name ?: 'LUNAR JEWELS' }}</span>
-            <span class="product-type">{{ $product->product_type === 'watch' ? 'Watch' : 'Jewelry' }}</span>
+            <span class="product-type">{{ $product->product_type === 'watch' ? __('store.product_card.watch') : __('store.product_card.jewelry') }}</span>
         </div>
         <a class="product-name" href="{{ route('products.show', $product) }}">{{ $product->name }}</a>
         <div class="product-bottom">
             <span class="price"><x-price :amount="$price" :compare-at="$compareAt" /></span>
-            <span class="stock {{ $stock <= 2 ? 'low' : '' }}">{{ $stock > 0 ? ($stock <= 2 ? 'Sắp hết' : 'Sẵn hàng') : 'Tạm hết' }}</span>
+            <span class="stock {{ $stock <= 2 ? 'low' : '' }}">{{ $stock > 0 ? ($stock <= 2 ? __('store.product_card.low_stock') : __('store.product_card.in_stock')) : __('store.product_card.out_of_stock') }}</span>
         </div>
     </div>
 </article>

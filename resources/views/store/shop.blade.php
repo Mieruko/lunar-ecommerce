@@ -1,21 +1,22 @@
-@extends('layouts.store', ['title' => ($type === 'watch' ? 'Watches' : ($type === 'jewelry' ? 'Jewelry' : (request('sort') === 'best_sellers' ? 'Best Sellers' : 'New In'))).' | LUNAR JEWELS'])
+@extends('layouts.store', ['title' => __('store.catalog.variants.'.($type === 'watch' ? 'watch' : ($type === 'jewelry' ? 'jewelry' : (request('sort') === 'best_sellers' ? 'best_sellers' : 'new_in'))).'.breadcrumb').' | LUNAR JEWELS'])
 
 @section('content')
 @php($isBestSellers = $type === null && request('sort') === 'best_sellers')
 @php($isNewIn = $type === null && ! $isBestSellers)
-@php($label = $type === 'watch' ? 'WATCHES' : ($type === 'jewelry' ? 'JEWELRY' : ($isBestSellers ? 'BEST SELLERS' : 'NEW IN')))
+@php($catalogVariant = $type === 'watch' ? 'watch' : ($type === 'jewelry' ? 'jewelry' : ($isBestSellers ? 'best_sellers' : 'new_in')))
+@php($label = __('store.catalog.variants.'.$catalogVariant.'.label'))
 @php($query = request()->except(['page']))
-@php($heroCopy = $type === 'watch' ? 'Cỗ máy chính xác, tỷ lệ cân bằng và những thiết kế được tạo để đồng hành lâu dài.' : ($type === 'jewelry' ? 'Trang sức tuyển chọn với ánh kim tinh tế, đường nét thanh lịch và dấu ấn riêng.' : ($isBestSellers ? 'Những thiết kế được yêu thích nhất, tuyển chọn từ dấu ấn thời gian và ánh sáng.' : 'Những thiết kế vừa xuất hiện, tuyển chọn để mở đầu cho câu chuyện phong cách mới.')))
+@php($heroCopy = __('store.catalog.variants.'.$catalogVariant.'.copy'))
 @php($heroVariant = $type === 'watch' ? 'watch' : ($type === 'jewelry' ? 'jewelry' : ($isBestSellers ? 'best-sellers' : 'new-in')))
-@php($heroWord = $type === 'watch' ? 'TIMEPIECES' : ($type === 'jewelry' ? 'JEWELRY' : ($isBestSellers ? 'SIGNATURES' : 'LATEST ARRIVALS')))
-@php($heroMeta = $type === 'watch' ? 'MECHANICAL / PRECISION' : ($type === 'jewelry' ? 'CRAFT / PRECIOUS' : ($isBestSellers ? 'MOST DESIRED' : 'NEW / 2026')))
+@php($heroWord = __('store.catalog.variants.'.$catalogVariant.'.word'))
+@php($heroMeta = __('store.catalog.variants.'.$catalogVariant.'.meta'))
 @php($heroImage = $type === 'watch' ? 'images/catalog/watches-mechanical.webp' : ($type === 'jewelry' ? 'images/catalog/jewelry-macro.webp' : ($isBestSellers ? 'images/catalog/best-sellers-crown.webp' : 'images/catalog/new-in-moonphase.webp')))
 
 <section class="catalog-hero catalog-hero-{{ $heroVariant }}">
     <img class="catalog-hero-photo" src="{{ asset($heroImage) }}" alt="" aria-hidden="true">
     <div class="shell catalog-hero-inner">
         <div class="catalog-hero-copy">
-            <div class="breadcrumb breadcrumb-light"><a href="{{ route('home') }}">Home</a><span>/</span>{{ ucfirst(strtolower($label)) }}</div>
+            <div class="breadcrumb breadcrumb-light"><a href="{{ route('home') }}">{{ __('store.common.home') }}</a><span>/</span>{{ __('store.catalog.variants.'.$catalogVariant.'.breadcrumb') }}</div>
             <span class="eyebrow eyebrow-light">Lunar Jewels · Collection</span>
             <h1 class="display">{{ $label }}</h1>
             <p>{{ $heroCopy }}</p>
@@ -33,31 +34,32 @@
     <div class="catalog-topline">
         <div class="catalog-count">
             <span>{{ str_pad((string) $products->total(), 2, '0', STR_PAD_LEFT) }}</span>
-            <small>pieces</small>
+            <small>{{ __('store.catalog.pieces') }}</small>
         </div>
-        <div class="catalog-topline-copy">Curated by Lunar Jewels</div>
+        <div class="catalog-topline-copy">{{ __('store.catalog.curated_by') }}</div>
     </div>
 
     <div class="shop-layout">
         <form class="filter-panel" data-filter-panel data-catalog-form method="GET" action="{{ url()->current() }}">
             <div class="filter-top">
-                <div><span class="eyebrow">Refine</span><b>Bộ lọc</b></div>
-                <div class="filter-top-actions"><a href="{{ url()->current() }}">Đặt lại</a><button type="button" data-filter-close aria-label="Đóng bộ lọc">×</button></div>
+                <div><span class="eyebrow">{{ __('store.catalog.refine') }}</span><b>{{ __('store.catalog.filters') }}</b></div>
+                <div class="filter-top-actions"><a href="{{ url()->current() }}">{{ __('store.catalog.reset') }}</a><button type="button" data-filter-close aria-label="{{ __('store.catalog.close_filters') }}">×</button></div>
             </div>
 
             @if(request('q'))<input type="hidden" name="q" value="{{ request('q') }}">@endif
 
             <details class="filter-group" open>
-                <summary>Danh mục <span>+</span></summary>
+                <summary>{{ __('store.catalog.category') }} <span>+</span></summary>
                 <div class="filter-options">
                     @foreach($categories as $category)
-                        <label><input type="checkbox" name="filter[category][]" value="{{ $category->id }}" @checked(in_array((string)$category->id, array_map('strval',(array)($filters['category']??[]))))><span>{{ $category->name }}</span></label>
+                        @php($categoryTranslation = 'store.categories.'.$category->slug)
+                        <label><input type="checkbox" name="filter[category][]" value="{{ $category->id }}" @checked(in_array((string)$category->id, array_map('strval',(array)($filters['category']??[]))))><span>{{ \Illuminate\Support\Facades\Lang::has($categoryTranslation) ? __($categoryTranslation) : $category->name }}</span></label>
                     @endforeach
                 </div>
             </details>
 
             <details class="filter-group" open>
-                <summary>Thương hiệu <span>+</span></summary>
+                <summary>{{ __('store.catalog.brand') }} <span>+</span></summary>
                 <div class="filter-options">
                     @foreach($brands as $brand)
                         <label><input type="checkbox" name="filter[brand][]" value="{{ $brand->id }}" @checked(in_array((string)$brand->id, array_map('strval',(array)($filters['brand']??[]))))><span>{{ $brand->name }}</span></label>
@@ -67,25 +69,25 @@
 
             @if($type !== 'jewelry')
                 <details class="filter-group" open>
-                    <summary>Watches <span>+</span></summary>
+                    <summary>{{ __('store.catalog.watch_filters') }} <span>+</span></summary>
                     <div class="filter-options">
-                        <label><input type="checkbox" name="filter[movement][]" value="Automatic" @checked(in_array('Automatic',(array)($filters['movement']??[])))><span>Automatic</span></label>
-                        <label><input type="checkbox" name="filter[strap_material][]" value="Thép không gỉ" @checked(in_array('Thép không gỉ',(array)($filters['strap_material']??[])))><span>Dây thép</span></label>
-                        <label><input type="checkbox" name="filter[dial_color][]" value="Xanh navy" @checked(in_array('Xanh navy',(array)($filters['dial_color']??[])))><span>Mặt xanh navy</span></label>
-                        <label><input type="checkbox" name="filter[water_resistance][]" value="50" @checked(in_array('50', array_map('strval',(array)($filters['water_resistance']??[]))))><span>Kháng nước 50m+</span></label>
+                        <label><input type="checkbox" name="filter[movement][]" value="Automatic" @checked(in_array('Automatic',(array)($filters['movement']??[])))><span>{{ __('store.catalog.automatic') }}</span></label>
+                        <label><input type="checkbox" name="filter[strap_material][]" value="Thép không gỉ" @checked(in_array('Thép không gỉ',(array)($filters['strap_material']??[])))><span>{{ __('store.catalog.steel_strap') }}</span></label>
+                        <label><input type="checkbox" name="filter[dial_color][]" value="Xanh navy" @checked(in_array('Xanh navy',(array)($filters['dial_color']??[])))><span>{{ __('store.catalog.navy_dial') }}</span></label>
+                        <label><input type="checkbox" name="filter[water_resistance][]" value="50" @checked(in_array('50', array_map('strval',(array)($filters['water_resistance']??[]))))><span>{{ __('store.catalog.water_resistance') }}</span></label>
                     </div>
                 </details>
             @endif
 
             @if($type !== 'watch')
                 <details class="filter-group" open>
-                    <summary>Jewelry <span>+</span></summary>
+                    <summary>{{ __('store.catalog.jewelry_filters') }} <span>+</span></summary>
                     <div class="filter-options">
-                        <label><input type="checkbox" name="filter[jewelry_type][]" value="ring" @checked(in_array('ring',(array)($filters['jewelry_type']??[])))><span>Nhẫn</span></label>
-                        <label><input type="checkbox" name="filter[jewelry_type][]" value="earrings" @checked(in_array('earrings',(array)($filters['jewelry_type']??[])))><span>Bông tai</span></label>
-                        <label><input type="checkbox" name="filter[jewelry_type][]" value="necklace" @checked(in_array('necklace',(array)($filters['jewelry_type']??[])))><span>Dây chuyền</span></label>
-                        <label><input type="checkbox" name="filter[jewelry_type][]" value="bracelet" @checked(in_array('bracelet',(array)($filters['jewelry_type']??[])))><span>Lắc tay</span></label>
-                        <label><input type="checkbox" name="filter[jewelry_type][]" value="pendant" @checked(in_array('pendant',(array)($filters['jewelry_type']??[])))><span>Mặt dây chuyền</span></label>
+                        <label><input type="checkbox" name="filter[jewelry_type][]" value="ring" @checked(in_array('ring',(array)($filters['jewelry_type']??[])))><span>{{ __('store.catalog.ring') }}</span></label>
+                        <label><input type="checkbox" name="filter[jewelry_type][]" value="earrings" @checked(in_array('earrings',(array)($filters['jewelry_type']??[])))><span>{{ __('store.catalog.earrings') }}</span></label>
+                        <label><input type="checkbox" name="filter[jewelry_type][]" value="necklace" @checked(in_array('necklace',(array)($filters['jewelry_type']??[])))><span>{{ __('store.catalog.necklace') }}</span></label>
+                        <label><input type="checkbox" name="filter[jewelry_type][]" value="bracelet" @checked(in_array('bracelet',(array)($filters['jewelry_type']??[])))><span>{{ __('store.catalog.bracelet') }}</span></label>
+                        <label><input type="checkbox" name="filter[jewelry_type][]" value="pendant" @checked(in_array('pendant',(array)($filters['jewelry_type']??[])))><span>{{ __('store.catalog.pendant') }}</span></label>
                         @foreach($materials as $material)
                             <label><input type="checkbox" name="filter[material][]" value="{{ $material->id }}" @checked(in_array((string)$material->id, array_map('strval',(array)($filters['material']??[]))))><span>{{ $material->name }}</span></label>
                         @endforeach
@@ -94,26 +96,26 @@
             @endif
 
             <details class="filter-group" open>
-                <summary>Khoảng giá <span>+</span></summary>
+                <summary>{{ __('store.catalog.price_range') }} <span>+</span></summary>
                 <div class="price-filter">
-                    <label><small>Từ</small><input name="min_price" type="number" min="0" placeholder="0 ₫" value="{{ request('min_price') }}"></label>
-                    <label><small>Đến</small><input name="max_price" type="number" min="0" placeholder="50.000.000 ₫" value="{{ request('max_price') }}"></label>
+                    <label><small>{{ __('store.catalog.from') }}</small><input name="min_price" type="number" min="0" placeholder="0 ₫" value="{{ request('min_price') }}"></label>
+                    <label><small>{{ __('store.catalog.to') }}</small><input name="max_price" type="number" min="0" placeholder="50.000.000 ₫" value="{{ request('max_price') }}"></label>
                 </div>
             </details>
 
-            <button class="button filter-submit">Áp dụng bộ lọc</button>
+            <button class="button filter-submit">{{ __('store.catalog.apply_filters') }}</button>
         </form>
-        <button class="filter-backdrop" type="button" data-filter-close aria-label="Đóng bộ lọc"></button>
+        <button class="filter-backdrop" type="button" data-filter-close aria-label="{{ __('store.catalog.close_filters') }}"></button>
 
         <div class="catalog-results">
             <div class="filter-toolbar">
                 <div>
-                    @if(request('q'))<span class="search-result-label">Kết quả cho “{{ request('q') }}”</span>@endif
-                    <p>Hiển thị {{ $products->firstItem() ?? 0 }}–{{ $products->lastItem() ?? 0 }} / {{ $products->total() }} sản phẩm</p>
+                    @if(request('q'))<span class="search-result-label">{{ __('store.catalog.results_for', ['query' => request('q')]) }}</span>@endif
+                    <p>{{ __('store.catalog.showing', ['first' => $products->firstItem() ?? 0, 'last' => $products->lastItem() ?? 0, 'total' => $products->total()]) }}</p>
                 </div>
 
                 <div class="toolbar-actions">
-                    <button class="button-outline mobile-filters" type="button" data-filter-toggle>Filters</button>
+                    <button class="button-outline mobile-filters" type="button" data-filter-toggle>{{ __('store.catalog.mobile_filters') }}</button>
                     <form method="GET" action="{{ url()->current() }}" data-catalog-form>
                         @if(request('q'))<input type="hidden" name="q" value="{{ request('q') }}">@endif
                         @if(request('min_price'))<input type="hidden" name="min_price" value="{{ request('min_price') }}">@endif
@@ -123,12 +125,12 @@
                                 <input type="hidden" name="filter[{{ $key }}][]" value="{{ $value }}">
                             @endforeach
                         @endforeach
-                        <label class="sort-select">Sort by
+                        <label class="sort-select">{{ __('store.catalog.sort_by') }}
                             <select name="sort" data-catalog-sort onchange="this.form.submit()">
-                                <option value="newest" @selected(request('sort','newest')==='newest')>Newest</option>
-                                <option value="price_asc" @selected(request('sort')==='price_asc')>Price: Low to High</option>
-                                <option value="price_desc" @selected(request('sort')==='price_desc')>Price: High to Low</option>
-                                <option value="best_sellers" @selected(request('sort')==='best_sellers')>Best Sellers</option>
+                                <option value="newest" @selected(request('sort','newest')==='newest')>{{ __('store.catalog.newest') }}</option>
+                                <option value="price_asc" @selected(request('sort')==='price_asc')>{{ __('store.catalog.price_low_high') }}</option>
+                                <option value="price_desc" @selected(request('sort')==='price_desc')>{{ __('store.catalog.price_high_low') }}</option>
+                                <option value="best_sellers" @selected(request('sort')==='best_sellers')>{{ __('store.catalog.best_sellers') }}</option>
                             </select>
                         </label>
                     </form>
@@ -142,8 +144,8 @@
                             <span class="chip">{{ str_replace('_',' ',$key) }}: {{ $value }}</span>
                         @endforeach
                     @endforeach
-                    @if(request('min_price')||request('max_price'))<span class="chip">Khoảng giá đã chọn</span>@endif
-                    <a class="chip chip-clear" href="{{ url()->current() }}">Xóa tất cả ×</a>
+                    @if(request('min_price')||request('max_price'))<span class="chip">{{ __('store.catalog.selected_price_range') }}</span>@endif
+                    <a class="chip chip-clear" href="{{ url()->current() }}">{{ __('store.catalog.clear_all') }}</a>
                 </div>
             @endif
 
@@ -153,9 +155,9 @@
                 @empty
                     <div class="empty product-grid-empty">
                         <span class="empty-orbit"></span>
-                        <h3>Không tìm thấy sản phẩm phù hợp</h3>
-                        <p>Hãy thử một từ khóa khác hoặc giảm bớt điều kiện lọc.</p>
-                        <a class="button-outline" href="{{ url()->current() }}">Xóa bộ lọc</a>
+                        <h3>{{ __('store.catalog.empty_title') }}</h3>
+                        <p>{{ __('store.catalog.empty_copy') }}</p>
+                        <a class="button-outline" href="{{ url()->current() }}">{{ __('store.catalog.clear_filters') }}</a>
                     </div>
                 @endforelse
             </div>

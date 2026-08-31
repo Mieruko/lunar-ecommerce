@@ -1,4 +1,4 @@
-@extends('layouts.store', ['title' => 'LUNAR JEWELS | Đồng hồ & Trang sức'])
+@extends('layouts.store', ['title' => __('store.home.page_title')])
 
 @section('content')
 <section class="home-hero">
@@ -6,15 +6,15 @@
         <div class="home-hero-copy">
             <span class="eyebrow eyebrow-light">Lunar Collection · 2026</span>
             <h1 class="display">A QUIET<br><em>kind of</em><br>BRILLIANCE</h1>
-            <p>Vẻ đẹp không cần phô trương. Từ chiếc đồng hồ moonphase trên cổ tay đến món trang sức giữ lấy ánh sáng — mỗi thiết kế đều được tuyển chọn dưới cảm hứng của ánh trăng và những khoảnh khắc vượt thời gian.</p>
+            <p>{{ __('store.home.hero_copy') }}</p>
             <div class="hero-actions">
-                <a class="button button-light" href="{{ route('watches') }}">Khám phá Watches</a>
-                <a class="text-link text-link-light" href="{{ route('jewelry') }}">Khám phá Jewelry <span>↗</span></a>
+                <a class="button button-light" href="{{ route('watches') }}">{{ __('store.home.explore_watches') }}</a>
+                <a class="text-link text-link-light" href="{{ route('jewelry') }}">{{ __('store.home.explore_jewelry') }} <span>↗</span></a>
             </div>
             <div class="hero-meta">
-                <span><b>01</b> Authentic pieces</span>
-                <span><b>02</b> Curated selection</span>
-                <span><b>03</b> Personal service</span>
+                <span><b>01</b> {{ __('store.home.authentic_pieces') }}</span>
+                <span><b>02</b> {{ __('store.home.curated_selection') }}</span>
+                <span><b>03</b> {{ __('store.home.personal_service') }}</span>
             </div>
         </div>
 
@@ -30,15 +30,15 @@
     </div>
 </section>
 
-<section class="home-value-bar" aria-label="Dịch vụ Lunar Jewels" data-reveal="fade">
+<section class="home-value-bar" aria-label="{{ __('store.home.services_aria') }}" data-reveal="fade">
     <div class="shell home-value-grid">
-        <div><span>◇</span><p><b>Sản phẩm minh bạch</b><small>Thông tin chất liệu và nguồn gốc rõ ràng</small></p></div>
-        <div><span>↗</span><p><b>Giao hàng có theo dõi</b><small>Cập nhật tiến trình trong My Lunar</small></p></div>
-        <a href="{{ route('support.warranty.form') }}"><span>○</span><p><b>Chăm sóc hậu mãi</b><small>Bảo hành và đổi trả thuận tiện</small></p></a>
+        <div><span>◇</span><p><b>{{ __('store.home.transparent_title') }}</b><small>{{ __('store.home.transparent_copy') }}</small></p></div>
+        <div><span>↗</span><p><b>{{ __('store.home.tracking_title') }}</b><small>{{ __('store.home.tracking_copy') }}</small></p></div>
+        <a href="{{ route('support.warranty.form') }}"><span>○</span><p><b>{{ __('store.home.aftercare_title') }}</b><small>{{ __('store.home.aftercare_copy') }}</small></p></a>
         @auth
-            <a href="{{ route('account.dashboard') }}"><span>◎</span><p><b>My Lunar</b><small>Đơn hàng, ưu đãi và thông báo</small></p></a>
+            <a href="{{ route('account.dashboard') }}"><span>◎</span><p><b>My Lunar</b><small>{{ __('store.home.my_lunar_copy') }}</small></p></a>
         @else
-            <a href="{{ route('register') }}"><span>◎</span><p><b>Gia nhập My Lunar</b><small>Lưu đơn hàng và sản phẩm yêu thích</small></p></a>
+            <a href="{{ route('register') }}"><span>◎</span><p><b>{{ __('store.home.join_my_lunar') }}</b><small>{{ __('store.home.join_my_lunar_copy') }}</small></p></a>
         @endauth
     </div>
 </section>
@@ -48,7 +48,7 @@
     <div class="intro-copy" data-reveal>
         <span class="eyebrow">The House</span>
         <h2 class="display section-title">OBJECTS OF TIME.<br>OBJECTS OF LIGHT.</h2>
-        <p>Mỗi thiết kế được chọn vì tỷ lệ, chất liệu và cảm giác nó để lại — từ chuyển động chính xác trên cổ tay đến ánh phản chiếu tinh tế của một món trang sức.</p>
+        <p>{{ __('store.home.house_copy') }}</p>
     </div>
 </section>
 
@@ -65,8 +65,8 @@
             <div class="collection-copy">
                 <span class="eyebrow eyebrow-light">Lunar Watches</span>
                 <h3>TIME, REFINED.</h3>
-                <p>Những cỗ máy mang nhịp điệu chính xác, được chọn cho phong cách sống hiện đại.</p>
-                <span class="text-link text-link-light">View collection <span>↗</span></span>
+                <p>{{ __('store.home.watch_copy') }}</p>
+                <span class="text-link text-link-light">{{ __('store.home.view_collection') }} <span>↗</span></span>
             </div>
         </a>
 
@@ -79,8 +79,8 @@
             <div class="collection-copy">
                 <span class="eyebrow">Lunar Jewels</span>
                 <h3>LIGHT, HELD CLOSE.</h3>
-                <p>Kim loại, đá quý và đường nét tối giản tạo nên một dấu ấn riêng nhưng không ồn ào.</p>
-                <span class="text-link">View collection <span>↗</span></span>
+                <p>{{ __('store.home.jewelry_copy') }}</p>
+                <span class="text-link">{{ __('store.home.view_collection') }} <span>↗</span></span>
             </div>
         </a>
     </div>
@@ -92,14 +92,14 @@
             <span class="eyebrow">Curated selection</span>
             <h2 class="display section-title">FEATURED PIECES</h2>
         </div>
-        <a class="text-link" href="{{ route('shop') }}">Xem tất cả <span>↗</span></a>
+        <a class="text-link" href="{{ route('shop') }}">{{ __('store.home.view_all') }} <span>↗</span></a>
     </div>
 
     <div class="product-grid" data-reveal-group>
         @forelse($featured as $product)
             <div data-reveal><x-product-card :product="$product" /></div>
         @empty
-            <div class="empty product-grid-empty"><h3>Chưa có sản phẩm nổi bật</h3><p>Hãy đánh dấu Featured cho sản phẩm trong trang quản trị.</p></div>
+            <div class="empty product-grid-empty"><h3>{{ __('store.home.featured_empty') }}</h3><p>{{ __('store.home.featured_empty_copy') }}</p></div>
         @endforelse
     </div>
 </section>
@@ -113,8 +113,8 @@
         <div class="editorial-copy" data-reveal>
             <span class="eyebrow eyebrow-light">New chapter</span>
             <h2 class="display">FOR THE MOMENTS<br>THAT BECOME <em>yours.</em></h2>
-            <p>Một món quà, một cột mốc, hay đơn giản là lựa chọn dành cho chính bạn. Lunar Jewels tin rằng những vật phẩm ý nghĩa nhất luôn gắn với một câu chuyện riêng.</p>
-            <a class="button button-light" href="{{ route('jewelry') }}">Khám phá Jewelry</a>
+            <p>{{ __('store.home.editorial_copy') }}</p>
+            <a class="button button-light" href="{{ route('jewelry') }}">{{ __('store.home.explore_jewelry') }}</a>
         </div>
     </div>
 </section>
@@ -125,21 +125,21 @@
             <span class="eyebrow">Just arrived</span>
             <h2 class="display section-title">NEW IN</h2>
         </div>
-        <a class="text-link" href="{{ route('shop', ['sort' => 'newest']) }}">Khám phá mới nhất <span>↗</span></a>
+        <a class="text-link" href="{{ route('shop', ['sort' => 'newest']) }}">{{ __('store.home.latest_link') }} <span>↗</span></a>
     </div>
 
     <div class="product-grid" data-reveal-group>
         @forelse($latest as $product)
             <div data-reveal><x-product-card :product="$product" /></div>
         @empty
-            <div class="empty product-grid-empty"><h3>Chưa có sản phẩm mới</h3></div>
+            <div class="empty product-grid-empty"><h3>{{ __('store.home.latest_empty') }}</h3></div>
         @endforelse
     </div>
 </section>
 
 <section class="section shell service-strip" data-reveal-group>
-    <div class="service-item" data-reveal><span class="service-number">01</span><div><b>Authenticity assured</b><p>Nguồn gốc và thông tin sản phẩm minh bạch.</p></div></div>
-    <div class="service-item" data-reveal><span class="service-number">02</span><div><b>Care after purchase</b><p>Bảo hành và hành trình đơn hàng rõ ràng.</p></div></div>
-    <div class="service-item" data-reveal><span class="service-number">03</span><div><b>Considered delivery</b><p>Đóng gói cẩn thận và hỗ trợ theo dõi đơn.</p></div></div>
+    <div class="service-item" data-reveal><span class="service-number">01</span><div><b>{{ __('store.home.service_authenticity') }}</b><p>{{ __('store.home.service_authenticity_copy') }}</p></div></div>
+    <div class="service-item" data-reveal><span class="service-number">02</span><div><b>{{ __('store.home.service_aftercare') }}</b><p>{{ __('store.home.service_aftercare_copy') }}</p></div></div>
+    <div class="service-item" data-reveal><span class="service-number">03</span><div><b>{{ __('store.home.service_delivery') }}</b><p>{{ __('store.home.service_delivery_copy') }}</p></div></div>
 </section>
 @endsection
